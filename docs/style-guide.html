@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Waffles 101 Course Player — Style &amp; Behavior Guide</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:#F7F6F4;color:#1E1C1A;font:16px/1.6 "Public Sans",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#A84600}a:hover{color:#8F3B00}
+:focus-visible{outline:3px solid #A84600;outline-offset:2px;border-radius:4px}
+.wrap{display:grid;grid-template-columns:260px minmax(0,1fr);max-width:1240px;margin:0 auto;gap:48px;padding:48px 32px 96px}
+nav{position:sticky;top:32px;align-self:start;display:flex;flex-direction:column;gap:2px}
+nav .brand{font-weight:700;font-size:17px;margin-bottom:4px}
+nav .sub{font-size:13px;color:#5E5852;margin-bottom:18px}
+nav a{display:block;padding:7px 12px;border-radius:8px;color:#1E1C1A;text-decoration:none;font-size:14px;font-weight:500}
+nav a:hover{background:#F4F1EE;color:#1E1C1A}
+nav .bar{height:6px;border-radius:99px;background:#EDE9E4;margin:0 12px 18px;overflow:hidden}nav .bar div{width:100%;height:100%;background:#CC5500}
+main{background:#fff;border:1px solid #E6E2DD;border-radius:12px;box-shadow:0 1px 2px rgba(30,28,26,.05),0 6px 20px rgba(30,28,26,.05);padding:56px 64px;min-width:0}
+h1{font-size:40px;line-height:1.1;letter-spacing:-.02em;margin:0 0 12px;text-wrap:balance}
+h2{font-size:26px;letter-spacing:-.015em;margin:48px 0 14px;padding-top:8px;scroll-margin-top:24px}
+h3{font-size:18px;margin:32px 0 10px}
+h4{font-size:15px;margin:24px 0 8px}
+p,li{color:#4A4540;text-wrap:pretty}
+p{margin:0 0 14px}
+strong{color:#1E1C1A}
+hr{border:0;border-top:1px solid #E6E2DD;margin:40px 0}
+code{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.86em;background:#F4F1EE;border-radius:4px;padding:1px 5px;color:#1E1C1A}
+pre{background:#1E1C1A;color:#F7F6F4;border-radius:10px;padding:16px 18px;overflow:auto}pre code{background:none;color:inherit;padding:0}
+ul,ol{padding-left:22px;margin:0 0 16px}li{margin:4px 0}li::marker{color:#CC5500}
+li.cb{list-style:none;margin-left:-22px;display:flex;gap:10px;align-items:flex-start}
+li.cb .box{width:18px;height:18px;flex:none;margin-top:3px;border:2px solid #CC5500;border-radius:5px}
+.tw{overflow-x:auto;margin:0 0 20px;border:1px solid #E6E2DD;border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{text-align:left;background:#FAF9F7;font-weight:700;color:#1E1C1A;padding:10px 14px;border-bottom:1px solid #E6E2DD;white-space:nowrap}
+td{padding:10px 14px;border-bottom:1px solid #ECE8E3;color:#4A4540;vertical-align:top}
+tr:last-child td{border-bottom:0}
+.sw{display:inline-block;width:14px;height:14px;border-radius:4px;border:1px solid rgba(0,0,0,.1);vertical-align:-2px;margin-right:8px}
+@media (max-width:900px){.wrap{grid-template-columns:1fr;padding:20px 12px 64px;gap:16px}nav{position:static;display:none}main{padding:28px 20px}h1{font-size:30px}}
+@media print{body{background:#fff}.wrap{display:block;padding:0}nav{display:none}main{border:0;box-shadow:none;padding:0}}
+</style></head><body>
+
+<div class="wrap">
+<nav aria-label="Sections"><div class="brand">Waffles 101</div><div class="sub">Course Player style guide</div><div class="bar"><div></div></div>
+<a href="#1-principles">1. Principles</a>
+<a href="#2-color">2. Color</a>
+<a href="#3-typography">3. Typography</a>
+<a href="#4-spacing-radius-elevation">4. Spacing, radius, elevation</a>
+<a href="#5-breakpoints-layout">5. Breakpoints &amp; layout</a>
+<a href="#6-components">6. Components</a>
+<a href="#7-behavior">7. Behavior</a>
+<a href="#8-page-templates">8. Page templates</a>
+<a href="#9-accessibility-checklist">9. Accessibility checklist</a>
+<a href="#10-copy-guidelines">10. Copy guidelines</a>
+<a href="#11-implementation-notes">11. Implementation notes</a>
+</nav>
+<main>
+<h1 id="waffles-101-course-player-style-behavior-guide">Waffles 101 Course Player — Style &amp; Behavior Guide</h1>
+<p>Reference for AI tools and developers building or extending the eLearning course player shell and its content pages. Source of truth: <code>CoursePlayer.dc.html</code>.</p>
+<hr>
+<h2 id="1-principles">1. Principles</h2>
+<ol><li><strong>Content first.</strong> The shell (header, menu, control bar) frames the page and never competes with it. Chrome is white/neutral; color is reserved for progress, primary actions, and status.</li><li><strong>Never cover content.</strong> Captions, section progress, and the desktop menu <em>resize</em> the content area rather than overlay it. Only the tablet menu, phone menu, and modal dialogs overlay.</li><li><strong>Always oriented.</strong> Learners can always see course completion, current page, and page count.</li><li><strong>Accessible by default.</strong> WCAG 2.1 AA contrast, visible focus on every control, ≥44×44px targets, labels on every icon button.</li><li><strong>Plain, warm copy.</strong> Short sentences. No em dashes in learner-facing copy. No jargon.</li></ol>
+<hr>
+<h2 id="2-color">2. Color</h2>
+<div class="tw"><table><thead><tr><th>Token</th><th>Hex</th><th>Use</th></tr></thead><tbody><tr><td><code>brand</code></td><td><span class="sw" style="background:#CC5500"></span><code>#CC5500</code></td><td>Burnt orange. Progress fills, status dots/checks, accent rings, bullets. <strong>Not</strong> behind text.</td></tr><tr><td><code>brand-strong</code></td><td><span class="sw" style="background:#A84600"></span><code>#A84600</code></td><td>Any orange surface that carries text or icons (primary buttons, Play, number badges), and orange text on white. White on this = 5.9:1.</td></tr><tr><td><code>brand-hover</code></td><td><span class="sw" style="background:#8F3B00"></span><code>#8F3B00</code></td><td>Hover/pressed state for <code>brand-strong</code> surfaces.</td></tr><tr><td><code>brand-tint</code></td><td><span class="sw" style="background:#FCF1EA"></span><code>#FCF1EA</code></td><td>Current-page row, active toggle background.</td></tr><tr><td><code>brand-tint-2</code></td><td><span class="sw" style="background:#FCEADC"></span><code>#FCEADC</code></td><td>Active caption sentence highlight.</td></tr><tr><td><code>brand-border</code></td><td><span class="sw" style="background:#E8C9B3"></span><code>#E8C9B3</code></td><td>Border for an expanded/active card.</td></tr><tr><td><code>ink</code></td><td><span class="sw" style="background:#1E1C1A"></span><code>#1E1C1A</code></td><td>Primary text.</td></tr><tr><td><code>ink-2</code></td><td><span class="sw" style="background:#4A4540"></span><code>#4A4540</code></td><td>Body copy on slides.</td></tr><tr><td><code>muted</code></td><td><span class="sw" style="background:#5E5852"></span><code>#5E5852</code></td><td>Secondary text, labels, captions (inactive).</td></tr><tr><td><code>line</code></td><td><span class="sw" style="background:#E6E2DD"></span><code>#E6E2DD</code></td><td>Borders and dividers.</td></tr><tr><td><code>line-strong</code></td><td><span class="sw" style="background:#D6D1CB"></span><code>#D6D1CB</code></td><td>Outline button borders.</td></tr><tr><td><code>track</code></td><td><span class="sw" style="background:#EDE9E4"></span><code>#EDE9E4</code> / <code>#E3DED8</code></td><td>Progress bar tracks.</td></tr><tr><td><code>surface</code></td><td><span class="sw" style="background:#FFFFFF"></span><code>#FFFFFF</code></td><td>Header, control bar, cards, menu.</td></tr><tr><td><code>canvas</code></td><td><span class="sw" style="background:#F7F6F4"></span><code>#F7F6F4</code></td><td>App background behind content.</td></tr><tr><td><code>hover</code></td><td><span class="sw" style="background:#F4F1EE"></span><code>#F4F1EE</code></td><td>Hover background for ghost/outline controls.</td></tr><tr><td><code>scrim</code></td><td><code>rgba(30,28,26,.32)</code></td><td>Tablet menu scrim. Dialog scrim uses <code>.4</code>.</td></tr></tbody></table></div>
+<p><strong>Contrast rule:</strong> white text on <code>#CC5500</code> is only 4.3:1, so it fails AA for normal text. Whenever text or a meaningful icon sits on orange, use <code>#A84600</code>.</p>
+<hr>
+<h2 id="3-typography">3. Typography</h2>
+<ul><li><strong>UI + content:</strong> <code>Public Sans</code> (Google Fonts, 400/500/600/700), fallback <code>Helvetica, Arial, sans-serif</code>.</li><li><strong>Placeholder labels only:</strong> <code>IBM Plex Mono</code> 12px.</li><li>Use <code>text-wrap: balance</code> on headings and <code>text-wrap: pretty</code> on paragraphs.</li></ul>
+<div class="tw"><table><thead><tr><th>Role</th><th>Desktop</th><th>Tablet</th><th>Phone</th><th>Weight</th></tr></thead><tbody><tr><td>Title page hero</td><td>104px</td><td>76px</td><td>52px (40–56px on short screens)</td><td>700, tracking −0.035em, line-height 0.98</td></tr><tr><td>Slide heading (h2)</td><td>38px</td><td>30px</td><td>24px</td><td>700, tracking −0.02em</td></tr><tr><td>Slide body</td><td>17px</td><td>17px</td><td>15px</td><td>400, line-height 1.55</td></tr><tr><td>Eyebrow (above heading)</td><td>12px uppercase, +0.08em, <code>brand-strong</code></td><td></td><td></td><td>700</td></tr><tr><td>Header course title</td><td>17px</td><td>17px</td><td>15px</td><td>700</td></tr><tr><td>Header subtitle (module)</td><td>13px</td><td>13px</td><td>12px</td><td>400, <code>muted</code></td></tr><tr><td>Buttons</td><td>14px</td><td>14px</td><td>15px</td><td>600</td></tr><tr><td>Menu page title</td><td>14px</td><td></td><td></td><td>500 (700 when current)</td></tr><tr><td>Small labels / meta</td><td>12–13px</td><td></td><td></td><td>400–600</td></tr><tr><td>Captions text</td><td>17px</td><td>17px</td><td>15px</td><td>400, line-height 1.6</td></tr></tbody></table></div>
+<p>Minimum text size is 11px, and only for tiny badges.</p>
+<hr>
+<h2 id="4-spacing-radius-elevation">4. Spacing, radius, elevation</h2>
+<ul><li><strong>Spacing scale:</strong> 4, 6, 8, 10, 12, 14, 16, 20, 24, 28, 32, 40, 48, 56, 64.</li><li><strong>Stage padding:</strong> desktop/tablet <code>28px 32px 14px</code>, phone <code>12px 12px 10px</code>, title page <code>0</code> (full-bleed).</li><li><strong>Radius:</strong> 8px controls, 10px phone buttons and slide image panels, 12px cards/content region/accordion items, 14px dialogs, 99px pills and progress bars, 50% round buttons.</li><li><strong>Shadows (subtle only):</strong><ul><li>Card: <code>0 1px 2px rgba(30,28,26,.05), 0 6px 20px rgba(30,28,26,.05)</code></li><li>Raised (open accordion item, toast): <code>0 1px 2px rgba(30,28,26,.05), 0 8px 24px rgba(30,28,26,.07)</code></li><li>Primary button: <code>0 2px 6px rgba(168,70,0,.22)</code></li><li>Tablet drawer: <code>12px 0 32px rgba(30,28,26,.14)</code></li><li>Dialog: <code>0 16px 48px rgba(30,28,26,.2)</code></li></ul></li><li>Avoid gradients except the title page scrim and striped image placeholders. Don't put a colored accent stripe on the left edge of cards.</li></ul>
+<hr>
+<h2 id="5-breakpoints-layout">5. Breakpoints &amp; layout</h2>
+<p>The breakpoint comes from the <strong>player container width</strong> (ResizeObserver), not the window, so the player adapts inside any frame.</p>
+<div class="tw"><table><thead><tr><th>Mode</th><th>Width</th><th>Header</th><th>Menu</th><th>Control bar</th></tr></thead><tbody><tr><td>Desktop</td><td>≥ 1024px</td><td>64px: Menu button, title, Course Completion bar (200px), Save &amp; exit</td><td>340px drawer, <strong>pushes</strong> content</td><td>76px, single row</td></tr><tr><td>Tablet</td><td>640–1023px</td><td>Same, completion bar 120px</td><td>340px drawer <strong>overlays</strong> content with scrim</td><td>76px, hides time readout and "Captions" label</td></tr><tr><td>Phone</td><td>&lt; 640px</td><td>56px: icon menu button, title, compact completion bar (96px), Exit</td><td><strong>Full-screen</strong> overlay</td><td>Two rows (see §6.5)</td></tr></tbody></table></div>
+<p>"Short" mode applies when the player is under 700px tall. It shrinks the title page type and gaps and hides secondary meta.</p>
+<p><strong>Vertical stack (all modes):</strong> Header → Content stage (flex:1) → Section progress bar → Captions panel (optional) → Control bar.</p>
+<p>Content region has max-width 1180px and is centered in the stage.</p>
+<hr>
+<h2 id="6-components">6. Components</h2>
+<h3 id="6-1-header">6.1 Header</h3>
+<ul><li><strong>Menu toggle:</strong> outlined, icon + "Menu" label. The icon swaps to × when open, and the button gets <code>aria-expanded</code> and <code>aria-controls="course-menu"</code>.</li><li><strong>Course title:</strong> "Waffles 101", with the module subtitle (<code>Module N · Title</code>) below.</li><li><strong>Course Completion:</strong> label <code>Course Completion NN%</code> plus an 8px bar (<code>brand</code> fill). Uses <code>role="progressbar"</code> with <code>aria-valuenow</code>.</li><li><strong>Save &amp; exit:</strong> outlined button. Opens the exit dialog (§7.6).</li></ul>
+<h3 id="6-2-course-menu-drawer">6.2 Course menu (drawer)</h3>
+<ul><li>Header: "Course contents", a close button (44px), then "N of 12 pages complete" with a 6px progress bar.</li><li>Pages are grouped by module. Each module heading shows the eyebrow <code>MODULE N</code>, the module title, a <code>done/total</code> count, and a "Complete" pill when every page is finished.</li><li><strong>Page rows</strong> (min-height 48px, full-width button) show a status icon, the title, and the duration.</li></ul>
+<p>  | Status | Icon | Sub-label |   |---|---|---|   | Complete | Filled <code>brand</code> circle with white check | none |   | In progress (visited, not finished) | Half-filled <code>brand</code> ring | "In progress" (<code>muted</code>) |   | Not started | 2px <code>#C9C3BC</code> ring | none |   | Current | <code>brand</code> ring with center dot, row bg <code>brand-tint</code>, title bold | "You are here" (or "You are here · Complete"), <code>brand-strong</code> |</p>
+<ul><li>The current row has <code>aria-current="page"</code>, and every row's <code>aria-label</code> includes its status.</li><li>Learners can jump to any page in any order.</li><li>Selecting a page closes the menu on tablet and phone; on desktop it stays open.</li></ul>
+<h3 id="6-3-content-region">6.3 Content region</h3>
+<ul><li>White card with 12px radius, 1px <code>line</code> border and the card shadow. It scrolls internally if its content overflows.</li><li>Set <code>role="region"</code> with <code>aria-label="Page N: Title"</code>.</li><li>Page templates are listed in §8.</li></ul>
+<h3 id="6-4-section-page-progress-bar">6.4 Section (page) progress bar</h3>
+<ul><li>Sits directly below the content region: a single 6px bar with <code>track</code> background and <code>brand</code> fill.</li><li>It shows narration progress for the <strong>current page only</strong> (<code>t / duration</code>) and resets on navigation.</li><li>No text. The tooltip reads "Title: m:ss of m:ss", and it uses <code>role="progressbar"</code> with an accessible label.</li></ul>
+<h3 id="6-5-control-bar">6.5 Control bar</h3>
+<p><strong>Desktop/tablet</strong> uses a three-column grid (<code>1fr auto 1fr</code>):</p>
+<ul><li>Left: <strong>Back</strong>, an outline button (chevron + label), disabled on page 1.</li><li>Center, as the audio group (<code>role="group"</code>): Replay (44px ghost), <strong>Play/Pause</strong> (48px circle, <code>brand-strong</code>), Mute toggle (44px ghost), volume slider (96px, <code>accent-color: #CC5500</code>), and the time <code>m:ss / m:ss</code> (hidden on tablet).</li><li>Right: <strong>Captions</strong> toggle (CC glyph + label; <code>aria-pressed</code>; active = <code>brand-tint</code> bg, <code>brand</code> border, <code>brand-strong</code> text), page counter <code>N of 12</code>, and <strong>Next</strong> (primary, <code>brand-strong</code>), disabled on the last page.</li></ul>
+<p><strong>Phone</strong> has two rows, built for one-thumb use:</p>
+<ol><li>Secondary row (44px): Replay, Mute, Captions (bordered, CC + label), then a spacer, the time readout, and a pill page counter.</li><li>Primary row: Back (flex:1, 52px) · Play (60px circle) · Next (flex:1, 52px, primary).</li></ol>
+<p>The volume slider is omitted on phone because the device buttons handle volume; mute stays.</p>
+<h3 id="6-6-captions-transcript-panel">6.6 Captions / transcript panel</h3>
+<ul><li>Toggled by the CC button. It docks <strong>below</strong> the content and above the control bar, and the stage shrinks to fit it.</li><li>It's a card with a "CC · TRANSCRIPT" label and a close button.</li><li>Narration shows as sentences, and the active sentence gets <code>ink</code> text on a <code>brand-tint-2</code> highlight.</li><li>Max height is 84px on desktop and 112px on phone, scrolling internally. Uses <code>aria-live="polite"</code>.</li></ul>
+<h3 id="6-7-toast-section-completed">6.7 Toast: "Section Completed"</h3>
+<ul><li>Appears bottom-right of the content area (20px inset; 12px on phone) when a page is completed <strong>for the first time</strong>.</li><li>White card with a 24px <code>brand</code> check circle and 14px/600 text.</li><li>Fades and slides up 8px over 250ms, then auto-dismisses after 3.2s.</li><li><code>role="status"</code> with <code>aria-live="polite"</code>. It is not clickable (<code>pointer-events: none</code>).</li></ul>
+<h3 id="6-8-buttons">6.8 Buttons</h3>
+<div class="tw"><table><thead><tr><th>Variant</th><th>Style</th><th>Use</th></tr></thead><tbody><tr><td>Primary</td><td><code>brand-strong</code> bg, white 600 text, hover <code>brand-hover</code>, 8px radius (10px phone), 44px min height</td><td>Next, Start, confirm actions</td></tr><tr><td>Outline</td><td>White bg, 1px <code>line-strong</code>, <code>ink</code> text, hover <code>hover</code></td><td>Back, Menu, Save &amp; exit, Cancel</td></tr><tr><td>Ghost icon</td><td>Transparent 44×44, hover <code>hover</code></td><td>Replay, Mute, close buttons</td></tr><tr><td>Round play</td><td>48px (desktop) / 60px (phone) circle, <code>brand-strong</code></td><td>Play/Pause</td></tr><tr><td>Toggle</td><td>Outline when off; <code>brand-tint</code> / <code>brand</code> border / <code>brand-strong</code> text when on</td><td>Captions, Menu (open)</td></tr></tbody></table></div>
+<p>Disabled buttons use 45% opacity plus the <code>disabled</code> attribute.</p>
+<h3 id="6-9-icons">6.9 Icons</h3>
+<ul><li>Stroke icons on a 24×24 viewBox: <code>stroke: currentColor</code>, stroke-width 2 (2.2 for chevrons, 3–3.5 for checks), round caps and joins, 18–22px.</li><li>Play/pause are filled shapes.</li><li>Every icon is <code>aria-hidden="true"</code>, and its button carries the label.</li></ul>
+<hr>
+<h2 id="7-behavior">7. Behavior</h2>
+<h3 id="7-1-navigation">7.1 Navigation</h3>
+<ul><li>Back/Next move by one page, and the menu jumps anywhere.</li><li>Every navigation sets narration time to 0, marks the page <strong>visited</strong>, and saves state.</li><li><strong>Autoplay:</strong> navigating to a page that is <em>not yet complete</em> starts narration automatically. Completed pages open paused at 0:00.</li><li>The first load doesn't autoplay, because browsers block audio that starts before any interaction.</li></ul>
+<h3 id="7-2-completion-rules">7.2 Completion rules</h3>
+<ul><li>A page is <strong>complete</strong> only when its narration plays to the end. Visiting a page does not complete it.</li><li>Page states: <code>not started</code> → <code>in progress</code> (visited) → <code>complete</code>.</li><li>A module is complete when all of its pages are complete.</li><li>Course Completion % = <code>completed pages / total pages</code>, rounded.</li><li>Replaying a completed page never un-completes it and does not re-trigger the toast.</li><li>When content pages add interactions (quizzes, activities), extend the completion rule to cover them.</li></ul>
+<h3 id="7-3-audio">7.3 Audio</h3>
+<ul><li>Play/Pause toggles playback, and pressing Play at the end restarts from 0.</li><li>Replay jumps to 0 and plays.</li><li>Mute toggles. Setting the volume to 0 shows the muted state, and unmuting from 0 restores the volume to 50.</li><li>Time ticks once per second (the demo simulates audio with a timer).</li></ul>
+<h3 id="7-4-captions">7.4 Captions</h3>
+<ul><li>Off by default, and the setting persists for the session.</li><li>The active sentence index is <code>floor(t / duration × sentenceCount)</code>.</li></ul>
+<h3 id="7-5-menu">7.5 Menu</h3>
+<ul><li>Toggle it from the header; Escape or the close button closes it.</li><li>The tablet scrim closes it on click.</li><li>When closed, the drawer is <code>visibility: hidden</code>, which removes it from tab order.</li><li>The slide animation runs 280ms with <code>cubic-bezier(.2,.7,.2,1)</code>.</li></ul>
+<h3 id="7-6-exit">7.6 Exit</h3>
+<ul><li>Save &amp; exit opens a modal ("Save and exit?") with the options <em>Keep learning</em> or <em>Save &amp; exit</em>.</li><li>Confirming saves state and shows a "Your place is saved" screen with <strong>Resume course</strong>. Escape cancels the dialog.</li></ul>
+<h3 id="7-7-persistence">7.7 Persistence</h3>
+<ul><li><code>localStorage</code> key <code>waffles101-player</code> stores <code>{ idx, visited[], completed[] }</code>.</li><li>It's written on navigation, on completion, and on exit, and restored on load.</li><li>Embedded preview instances pass <code>persist={false}</code>.</li></ul>
+<h3 id="7-8-motion">7.8 Motion</h3>
+<div class="tw"><table><thead><tr><th>Element</th><th>Duration</th><th>Easing</th></tr></thead><tbody><tr><td>Drawer slide, content push</td><td>280ms</td><td><code>cubic-bezier(.2,.7,.2,1)</code></td></tr><tr><td>Accordion expand</td><td>280ms</td><td>same (animates <code>grid-template-rows</code> 0fr↔1fr)</td></tr><tr><td>Progress fills</td><td>400ms (course) / 1s linear (page)</td><td>ease / linear</td></tr><tr><td>Toast, hover and color changes</td><td>200–250ms</td><td>ease</td></tr></tbody></table></div>
+<p>Keep motion subtle, with no bounces or large translations.</p>
+<hr>
+<h2 id="8-page-templates">8. Page templates</h2>
+<p>All templates live inside the content region and must work at desktop, tablet, and phone widths.</p>
+<h3 id="8-1-title-page-page-1">8.1 Title page (page 1)</h3>
+<ul><li>Full-bleed background image fills the entire stage (no card, no padding) using a user-fillable image slot.</li><li><strong>Scrim</strong> for legibility: left-to-right on desktop/tablet (<code>rgba(28,18,12,.86) → .12</code>), bottom-to-top on phone.</li><li>The text block (max 640px) sits on the left and is vertically centered; on phone it's bottom-anchored:<ul><li>Eyebrow: "Hello and welcome to..." (<code>#FFE3CF</code>)</li><li>Hero: course title, white</li><li>Lede: 1–2 sentences, <code>#FFF6EF</code></li><li>Meta: "12 pages · 4 modules · no experience needed", hidden in short mode</li><li><strong>Start the course →</strong> is a primary button that goes to page 2 and autoplays it.</li></ul></li><li>Overlays use <code>pointer-events: none</code> (the button re-enables it) so the image slot stays droppable.</li></ul>
+<h3 id="8-2-standard-content-slide-default">8.2 Standard content slide (default)</h3>
+<ul><li><strong>Desktop/tablet:</strong> two columns at 50/50, image placeholder left and text right.</li><li><strong>Phone:</strong> stacked, with the image at a 180px min height above the text.</li><li>The text column holds an eyebrow (<code>Page N · Title</code>), an h2 heading, a one-sentence body, and 2–4 bullets marked with 8px <code>brand</code> dots.</li><li><strong>Image placeholder:</strong> a subtle diagonal stripe (<code>#F7F5F2</code> / <code>#EFECE8</code>, 12px) plus a centered white mono label describing the intended image (e.g. "photo: spatula folding wet into dry batter").</li></ul>
+<h3 id="8-3-accordion-page-4-core-ingredients">8.3 Accordion (page 4, "Core Ingredients")</h3>
+<ul><li><strong>Desktop/tablet:</strong> intro column (38%: eyebrow, heading, lede, image placeholder) and list column (62%, <code>align-self: safe center</code>).</li><li><strong>Phone:</strong> stacked, with the image hidden.</li><li><strong>Items:</strong> 12px radius cards. Closed = <code>#FAF9F7</code> bg with a <code>#ECE8E3</code> border. Open = white bg, <code>brand-border</code> border, and the raised shadow.</li><li><strong>Header:</strong> a full-width button (min 56px) inside an <code>h3</code>, showing a 32px number badge (<code>brand-strong</code> bg, white), the name at 16px/600, and a chevron that rotates 180° when open.</li><li><strong>Panel:</strong> description (15px) plus "Typical amount:", indented to align under the name.</li><li>Only one item is open at a time, the first is open by default, and clicking the open item closes it.</li><li><strong>ARIA:</strong> <code>aria-expanded</code> and <code>aria-controls</code> on the button; the panel is <code>role="region"</code> with <code>aria-labelledby</code>. Closed panels are <code>visibility: hidden</code>.</li></ul>
+<h3 id="8-4-adding-a-new-template">8.4 Adding a new template</h3>
+<ol><li>Add a boolean in logic (e.g. <code>isQuiz: s.idx === 11</code>) and exclude that index from <code>isContent</code>.</li><li>Render it inside the content region's frame (same radius, border, shadow, <code>overflow: auto</code>).</li><li>Use <code>safe center</code> or <code>margin: auto</code>, never plain <code>center</code>, for anything that can overflow a scroll container.</li><li>Provide the desktop, tablet, and phone variants plus short-height behavior.</li><li>If it has interactions, define what counts as "complete" (§7.2).</li></ol>
+<hr>
+<h2 id="9-accessibility-checklist">9. Accessibility checklist</h2>
+<ul><li class="cb"><span class="box"></span>Text contrast ≥ 4.5:1 (≥ 3:1 for headline-scale type only); orange behind text is always <code>#A84600</code>.</li><li class="cb"><span class="box"></span>Global focus ring: <code>:focus-visible { outline: 3px solid #A84600; outline-offset: 2px; }</code> on every control.</li><li class="cb"><span class="box"></span>Targets ≥ 44×44px (phone primary buttons 52px, play 60px).</li><li class="cb"><span class="box"></span>Icon-only buttons have an <code>aria-label</code> plus <code>title</code> tooltip.</li><li class="cb"><span class="box"></span>Toggles use <code>aria-pressed</code> (Captions, Mute); disclosures use <code>aria-expanded</code> (Menu, accordion).</li><li class="cb"><span class="box"></span>Progress bars expose <code>role="progressbar"</code> with <code>aria-valuenow/min/max</code> and a label.</li><li class="cb"><span class="box"></span>Live updates (page counter, captions, toast) use <code>aria-live="polite"</code>.</li><li class="cb"><span class="box"></span>Escape closes the menu and the dialog; hidden panels are removed from tab order.</li><li class="cb"><span class="box"></span>Nothing important is conveyed by color alone (status icons differ in shape: check, half-fill, ring, dot).</li></ul>
+<hr>
+<h2 id="10-copy-guidelines">10. Copy guidelines</h2>
+<ul><li>Voice: friendly, direct, encouraging. Second person ("you'll learn…").</li><li>Sentence case for headings and buttons ("Start the course", "Save &amp; exit").</li><li><strong>No em dashes</strong> (—) in learner-facing text; use periods or commas.</li><li>Keep slide body to one or two sentences and bullets to one line each where possible.</li><li>Use UI labels exactly as written: "Menu", "Course contents", "Course Completion", "Save &amp; exit", "Back", "Next", "Captions", "Transcript", "Section Completed", "You are here", "In progress", "Complete", "Resume course".</li><li>Numbers read "N of 12" for page counters and "N of 12 pages complete" in the menu.</li></ul>
+<hr>
+<h2 id="11-implementation-notes">11. Implementation notes</h2>
+<ul><li>Styling is inline. The only global CSS is font import, box-sizing reset, the focus ring, range <code>accent-color</code>, and link colors (<code>#A84600</code>, hover <code>#8F3B00</code>).</li><li>Course data lives in <code>COURSE</code> (modules → <code>[title, duration]</code>), <code>NARR</code> (sentences per page), <code>SLIDES</code> (image label, heading, body, points), and <code>INGREDIENTS</code> (accordion items).</li><li><strong>Props:</strong><ul><li><code>viewport</code> (<code>auto | desktop | tablet | phone</code>)</li><li><code>menuOpen</code></li><li><code>captionsOn</code></li><li><code>showToast</code> (preview the toast)</li><li><code>initialPage</code> (1–12)</li><li><code>initialTime</code></li><li><code>height</code></li><li><code>persist</code></li></ul></li></ul>
+</main></div></body></html>

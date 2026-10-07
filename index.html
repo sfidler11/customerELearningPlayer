@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Waffles 101</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="src/player.css">
+  <style>
+    html, body { height: 100%; margin: 0; }
+    #app { height: 100vh; height: 100dvh; }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script src="src/course-data.js"></script>
+  <script src="src/player.js"></script>
+  <script>
+    // Query parameters mirror the player options for previews, e.g. ?viewport=phone&page=4&captions=1
+    var q = new URLSearchParams(location.search);
+    var flag = function (name) { return q.has(name) ? q.get(name) !== '0' : undefined; };
+    new CoursePlayer(document.getElementById('app'), window.COURSE_DATA, {
+      viewport: q.get('viewport') || 'auto',
+      initialPage: q.has('page') ? Number(q.get('page')) : undefined,
+      initialTime: q.has('t') ? Number(q.get('t')) : undefined,
+      menuOpen: flag('menu'),
+      captionsOn: flag('captions'),
+      showToast: flag('toast'),
+      persist: flag('persist')
+    });
+  </script>
+</body>
+</html>
