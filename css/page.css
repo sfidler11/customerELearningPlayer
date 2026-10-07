@@ -1,0 +1,3 @@
+/* Page wrapper for index.html: the player fills the window. */
+html, body { height: 100%; margin: 0; }
+#app { height: 100vh; height: 100dvh; }
