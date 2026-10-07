@@ -219,6 +219,7 @@
 
 /* Tabs slide */
 .cp-tabs-slide { display: flex; flex-direction: column; gap: 20px; min-height: 100%; padding: 32px; }
+.cp-tabs-intro { padding: 20px 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow-card); }
 .cp-tabs-intro .cp-h2 { margin-bottom: 10px; }
 .cp-tabs-intro .cp-body-text { margin: 0; max-width: 62ch; }
 .cp-tablist { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
@@ -358,6 +359,7 @@
 
 /* tabs: phone */
 .cp--phone .cp-tabs-slide { padding: 16px; gap: 14px; }
+.cp--phone .cp-tabs-intro { padding: 14px 16px; }
 .cp--phone .cp-tablist { gap: 6px; }
 .cp--phone .cp-tab { padding: 6px 4px; font-size: 13px; }
 .cp--phone .cp-tabpanel__inner { grid-template-columns: 1fr; gap: 14px; padding: 14px; }
