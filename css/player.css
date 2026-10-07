@@ -217,6 +217,29 @@
 .cp-acc-panel p:last-child { padding-bottom: 16px; padding-top: 6px; }
 .cp-acc-panel strong { color: var(--ink); }
 
+/* Tabs slide */
+.cp-tabs-slide { display: flex; flex-direction: column; gap: 20px; min-height: 100%; padding: 32px; }
+.cp-tabs-intro .cp-h2 { margin-bottom: 10px; }
+.cp-tabs-intro .cp-body-text { margin: 0; max-width: 62ch; }
+.cp-tablist { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.cp-tab {
+  min-height: 52px; padding: 8px 12px; border-radius: 10px; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--line-strong); color: var(--ink);
+  font-size: 15px; font-weight: 600; line-height: 1.25; text-align: center;
+  transition: background-color .2s ease, border-color .2s ease, color .2s ease;
+}
+.cp-tab:hover { background: var(--hover); }
+.cp-tab.is-open { background: var(--brand-tint); border-color: var(--brand); color: var(--brand-strong); }
+.cp-tabpanel { display: grid; grid-template-rows: 0fr; visibility: hidden; transition: grid-template-rows .28s var(--ease), visibility 0s linear .28s; }
+.cp-tabpanel.is-open { grid-template-rows: 1fr; visibility: visible; transition: grid-template-rows .28s var(--ease), visibility 0s; }
+.cp-tabpanel > div { overflow: hidden; min-height: 0; }
+.cp-tabpanel__inner { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 28px; padding: 20px; background: var(--brand-tint); border: 1px solid var(--brand-border); border-radius: 12px; }
+.cp-tabpanel__inner .cp-img { min-height: 200px; }
+.cp-tabpanel__text { align-self: safe center; padding: 20px 24px; background: var(--surface); border-radius: 12px; }
+.cp-tabpanel__text h3 { margin: 0 0 8px; font-size: 22px; letter-spacing: -.01em; }
+.cp-tabpanel__text p { margin: 0 0 10px; font-size: 17px; line-height: 1.55; color: var(--ink-2); }
+.cp-tabpanel__tip strong { color: var(--ink); }
+
 /* ---------- Toast ---------- */
 .cp-toast {
   position: absolute; right: 20px; bottom: 20px; z-index: 1; pointer-events: none;
@@ -333,6 +356,17 @@
 .cp-phone-row2 .cp-btn--play { width: 60px; height: 60px; }
 .cp-phone-row2 .cp-btn--play svg { width: 26px; height: 26px; }
 
+/* tabs: phone */
+.cp--phone .cp-tabs-slide { padding: 16px; gap: 14px; }
+.cp--phone .cp-tablist { gap: 6px; }
+.cp--phone .cp-tab { padding: 6px 4px; font-size: 13px; }
+.cp--phone .cp-tabpanel__inner { grid-template-columns: 1fr; gap: 14px; padding: 14px; }
+.cp--phone .cp-tabpanel__inner .cp-img { min-height: 140px; }
+.cp--phone .cp-tabpanel__text { padding: 14px 16px; }
+.cp--phone .cp-tabpanel__text h3 { font-size: 18px; }
+.cp--phone .cp-tabpanel__text p { font-size: 15px; }
+.cp--tablet .cp-tabpanel__inner { gap: 20px; }
+
 /* ---------- Short (under 700px tall) ---------- */
 .cp--short .cp-hero__title { font-size: 64px; }
 .cp--short.cp--phone .cp-hero__title { font-size: 44px; }
@@ -341,7 +375,11 @@
 .cp--short .cp-hero__eyebrow { margin-bottom: 8px; }
 .cp--short .cp-hero__title { margin-bottom: 12px; }
 .cp--short .cp-slide, .cp--short .cp-acc-slide { padding: 24px; gap: 28px; }
+.cp--short .cp-tabs-slide { padding: 20px 24px; gap: 14px; }
+.cp--short .cp-tabpanel__inner .cp-img { min-height: 120px; }
 .cp--short.cp--phone .cp-slide, .cp--short.cp--phone .cp-acc-slide { padding: 14px; gap: 14px; }
+.cp--short.cp--phone .cp-tabs-slide { padding: 14px; gap: 12px; }
+.cp--short.cp--phone .cp-tabpanel__inner .cp-img { display: none; }
 .cp--short .cp-slide .cp-img { min-height: 180px; }
 .cp--short .cp-acc-intro .cp-img { display: none; }
 

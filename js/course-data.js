@@ -33,15 +33,39 @@ window.COURSE_DATA = {
         {
           title: 'Your waffle toolkit',
           duration: 24,
-          template: 'content',
-          imageLabel: 'photo: waffle iron, mixing bowls, whisk and spatula on a counter',
-          heading: 'You only need a few tools',
-          body: 'Most kitchens already have everything except the waffle iron.',
-          points: ['A waffle iron, round or square', 'Two mixing bowls', 'A whisk and a flexible spatula', 'A ladle or measuring cup'],
+          template: 'tabs',
+          heading: 'You only need four tools',
+          lede: 'Most kitchens already have everything except the waffle iron. Select a tool to see what it does. Select it again to close it.',
+          items: [
+            {
+              name: 'Waffle iron',
+              description: 'The one special tool. Two heated grids close around the batter and cook it from both sides at once. Round or square, any shape works.',
+              tip: 'Pick one with a ready light.',
+              imageLabel: 'photo: waffle iron open on the counter'
+            },
+            {
+              name: 'Mixing bowls',
+              description: 'You need two. Mix the dry ingredients in one and the wet ingredients in the other, then combine them.',
+              tip: 'A large bowl for the batter helps you fold gently.',
+              imageLabel: 'photo: two mixing bowls, one with flour and one with eggs and milk'
+            },
+            {
+              name: 'Whisk and spatula',
+              description: 'Use the whisk to break up lumps in each bowl. Use a flexible spatula to fold the wet mix into the dry mix without overmixing.',
+              tip: 'Stop folding as soon as the dry flour disappears.',
+              imageLabel: 'photo: whisk and spatula resting on a bowl'
+            },
+            {
+              name: 'Ladle or measuring cup',
+              description: 'A ladle or a measuring cup pours the same amount of batter every time, so your waffles cook evenly.',
+              tip: 'About three-quarters of a cup fills most irons.',
+              imageLabel: 'photo: ladle pouring batter into a measuring cup'
+            }
+          ],
           narration: [
-            'Good news. You only need a few tools to get started.',
+            'Good news. You only need four tools to get started.',
             'The one special item is a waffle iron, and any shape works.',
-            'Add two bowls, a whisk, a spatula, and a ladle, and you are set.'
+            'Add two bowls, a whisk and spatula, and a ladle or measuring cup, and you are set.'
           ]
         },
         {
