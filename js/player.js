@@ -260,6 +260,7 @@
         case 'mute': self.toggleMute(); break;
         case 'captions': self.setCaptions(!self.state.captionsOn); break;
         case 'acc': self.toggleItem(Number(target.getAttribute('data-item'))); break;
+        case 'tab': self.toggleTab(Number(target.getAttribute('data-item'))); break;
         case 'exit': self.openExitDialog(); break;
         case 'keep': self.closeExitDialog(); break;
         case 'confirm-exit': self.confirmExit(); break;
@@ -276,6 +277,16 @@
     });
 
     this.el.addEventListener('keydown', function (e) {
+      var tab = e.target.closest && e.target.closest('[role=tab]');
+      if (tab && ['ArrowLeft', 'ArrowRight', 'Home', 'End'].indexOf(e.key) !== -1) {
+        var tabs = Array.prototype.slice.call(tab.parentNode.querySelectorAll('[role=tab]'));
+        var at = tabs.indexOf(tab);
+        var to = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1
+          : (at + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+        e.preventDefault();
+        tabs[to].focus();
+        return;
+      }
       if (e.key !== 'Escape') return;
       if (self.dialogOpen) { e.preventDefault(); self.closeExitDialog(); }
       else if (self.state.menuOpen) { e.preventDefault(); self.setMenu(false, true); }
@@ -417,6 +428,20 @@
       var open = k === this.state.openItem;
       items[k].classList.toggle('is-open', open);
       items[k].querySelector('.cp-acc-btn').setAttribute('aria-expanded', String(open));
+    }
+  };
+
+  // Tabs: selecting the open tab again closes it, so every panel can be collapsed.
+  CoursePlayer.prototype.toggleTab = function (i) {
+    this.state.openItem = this.state.openItem === i ? -1 : i;
+    var open = this.state.openItem;
+    var tabs = this.slots.region.querySelectorAll('.cp-tab');
+    var panels = this.slots.region.querySelectorAll('.cp-tabpanel');
+    for (var k = 0; k < tabs.length; k++) {
+      var on = k === open;
+      tabs[k].setAttribute('aria-selected', String(on));
+      tabs[k].classList.toggle('is-open', on);
+      panels[k].classList.toggle('is-open', on);
     }
   };
 
@@ -615,6 +640,7 @@
     region.scrollTop = 0;
     if (d.template === 'title') region.innerHTML = this.tplTitle(d);
     else if (d.template === 'accordion') region.innerHTML = this.tplAccordion(d, n);
+    else if (d.template === 'tabs') region.innerHTML = this.tplTabs(d, n);
     else region.innerHTML = this.tplContent(d, n);
 
     var counters = this.el.querySelectorAll('[data-role=counter]');
@@ -683,6 +709,38 @@
         imageSlot(d.image, d.imageLabel) +
       '</div>' +
       '<div class="cp-acc-list">' + items + '</div>' +
+    '</div>';
+  };
+
+  CoursePlayer.prototype.tplTabs = function (d, n) {
+    var open = this.state.openItem;
+    var items = d.items || [];
+    var tabs = items.map(function (it, i) {
+      var isOpen = i === open;
+      var id = 'cp-tab-' + n + '-' + i;
+      return '<button type="button" class="cp-tab' + (isOpen ? ' is-open' : '') + '" role="tab" id="' + id + '" data-act="tab" data-item="' + i + '"' +
+        ' aria-selected="' + isOpen + '" aria-controls="' + id + '-panel">' + esc(it.name) + '</button>';
+    }).join('');
+    var panels = items.map(function (it, i) {
+      var isOpen = i === open;
+      var id = 'cp-tab-' + n + '-' + i;
+      return '<div class="cp-tabpanel' + (isOpen ? ' is-open' : '') + '" id="' + id + '-panel" role="tabpanel" aria-labelledby="' + id + '"><div><div class="cp-tabpanel__inner">' +
+        imageSlot(it.image, it.imageLabel) +
+        '<div class="cp-tabpanel__text">' +
+          '<h3>' + esc(it.name) + '</h3>' +
+          '<p>' + esc(it.description) + '</p>' +
+          (it.tip ? '<p class="cp-tabpanel__tip"><strong>Tip:</strong> ' + esc(it.tip) + '</p>' : '') +
+        '</div>' +
+      '</div></div></div>';
+    }).join('');
+    return '<div class="cp-tabs-slide">' +
+      '<div class="cp-tabs-intro">' +
+        '<p class="cp-eyebrow">Page ' + n + ' · ' + esc(d.title) + '</p>' +
+        '<h2 class="cp-h2">' + esc(d.heading) + '</h2>' +
+        '<p class="cp-body-text">' + esc(d.lede) + '</p>' +
+      '</div>' +
+      '<div class="cp-tablist" role="tablist" aria-label="' + esc(d.title) + '">' + tabs + '</div>' +
+      '<div class="cp-tabpanels">' + panels + '</div>' +
     '</div>';
   };
 

@@ -50,6 +50,7 @@ The layout mode comes from the player's own width (desktop ≥ 1024px, tablet 64
 
 - `title`: full-bleed title page. Fields: `eyebrow`, `lede`, `meta`, `image`, `imageLabel`.
 - `content`: image and text slide. Fields: `heading`, `body`, `points`, `image`, `imageLabel`.
+- `tabs`: intro plus a row of tabs. Selecting a tab opens its panel, and selecting it again closes it. Fields: `heading`, `lede`, `items` (`name`, `description`, `tip`, `image`, `imageLabel`).
 - `accordion`: intro plus expandable list. Fields: `heading`, `lede`, `image`, `imageLabel`, `items` (`name`, `description`, `amount`).
 
 Leave `image` empty to show the striped placeholder with `imageLabel`, or set it to an image URL.
