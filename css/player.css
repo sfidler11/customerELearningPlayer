@@ -233,7 +233,7 @@
 .cp-tabpanel { display: grid; grid-template-rows: 0fr; visibility: hidden; transition: grid-template-rows .28s var(--ease), visibility 0s linear .28s; }
 .cp-tabpanel.is-open { grid-template-rows: 1fr; visibility: visible; transition: grid-template-rows .28s var(--ease), visibility 0s; }
 .cp-tabpanel > div { overflow: hidden; min-height: 0; }
-.cp-tabpanel__inner { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 28px; padding: 20px; background: var(--surface); border: 1px solid var(--brand-border); border-radius: 12px; }
+.cp-tabpanel__inner { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 28px; padding: 20px; background: var(--brand-tint); border: 1px solid var(--brand-border); border-radius: 12px; }
 .cp-tabpanel__inner .cp-img { min-height: 200px; }
 .cp-tabpanel__text { align-self: safe center; }
 .cp-tabpanel__text h3 { margin: 0 0 8px; font-size: 22px; letter-spacing: -.01em; }
