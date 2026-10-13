@@ -11,6 +11,12 @@
 window.COURSE_DATA = {
   title: 'Waffles 101',
   storageKey: 'waffles101-player',
+  // Documents shared with the learner (the document icon in the header).
+  // type: 'pdf' | 'pptx'. Put the files in the resources/ folder and set url to e.g. 'resources/guide.pdf'.
+  // Leave url empty to show the row as "Coming soon".
+  resources: [
+    { title: 'Waffles job aid', type: 'pdf', url: 'resources/Waffles_Job_Aid.pdf', description: 'Classic Golden Waffles: ingredients and method' }
+  ],
   modules: [
     {
       title: 'Getting started',

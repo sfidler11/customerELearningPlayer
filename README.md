@@ -22,6 +22,7 @@ Preview options can be passed as query parameters, for example `?viewport=phone&
 | `index.html` | Demo page. It only links the files below; it has no inline CSS or JS. |
 | `css/player.css` | Design tokens and component styles from the style guide. |
 | `css/page.css` | Makes the player fill the window on `index.html`. |
+| `resources/` | The PDFs and PowerPoint files offered in the "Course resources" pop-up. |
 | `js/player.js` | The player shell: header, course menu, content region, section progress, captions, control bar, toast, exit dialog. |
 | `js/course-data.js` | Course content. Swap this file to build a new course. |
 | `js/main.js` | Mounts the player on `index.html` and reads preview options from the URL. |
@@ -39,6 +40,7 @@ new CoursePlayer(element, window.COURSE_DATA, {
   initialTime: 0,
   height: null,       // e.g. 720 or '80vh'; defaults to filling the container
   persist: true,      // save progress to localStorage
+  onDownload: function (file) {},  // optional: return true to handle a resource download yourself ({ url, filename })
   onClose: function (info) {}  // called when the learner presses Close Course on the completion page (e.g. tell the LMS)
 });
 ```
@@ -54,6 +56,8 @@ The layout mode comes from the player's own width (desktop ≥ 1024px, tablet 64
 - `tabs`: intro plus a row of tabs. Selecting a tab opens its panel, and selecting it again closes it. Fields: `heading`, `lede`, `items` (`name`, `description`, `tip`, `image`, `imageLabel`).
 - `completion`: the last page. Shows `heading` and `thanks` with confetti once every page is complete, and `pendingHeading` and `pendingBody` until then. Confetti is skipped when the visitor prefers reduced motion.
 - `accordion`: intro plus expandable list. Fields: `heading`, `lede`, `image`, `imageLabel`, `items` (`name`, `description`, `amount`).
+
+`COURSE_DATA.resources` lists the documents behind the document icon in the header: each has a `title`, a `type` (`'pdf'` or `'pptx'`), a `url` and an optional `description`. An entry with an empty `url` shows as "Coming soon". Keep the files in the `resources/` folder (see its README) and add one entry per file.
 
 Leave `image` empty to show the striped placeholder with `imageLabel`, or set it to an image URL.
 

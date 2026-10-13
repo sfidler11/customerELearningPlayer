@@ -95,6 +95,7 @@
       viewport: opts.viewport || 'auto',
       persist: opts.persist !== false,
       onClose: opts.onClose || null,
+      onDownload: opts.onDownload || null,
       height: opts.height || null
     };
 
@@ -177,6 +178,7 @@
             '<div class="cp-completion__label" aria-hidden="true"><span class="cp-completion__word">Course Completion </span><b data-slot="pct"></b></div>' +
             '<div class="cp-bar" role="progressbar" aria-label="Course Completion" aria-valuemin="0" aria-valuemax="100" data-slot="course-bar"><span></span></div>' +
           '</div>' +
+          '<button type="button" class="cp-btn cp-btn--outline cp-resources-btn" data-act="resources" aria-haspopup="dialog" aria-label="Course resources" title="Course resources"><span aria-hidden="true">\uD83D\uDCC4</span></button>' +
           '<button type="button" class="cp-btn cp-btn--outline cp-exit" data-act="exit"><span data-slot="exit-label">Save &amp; exit</span></button>' +
         '</header>' +
         '<div class="cp-body">' +
@@ -263,6 +265,14 @@
     var self = this;
 
     this.el.addEventListener('click', function (e) {
+      // A host (an LMS wrapper, a sandboxed preview) can take over resource downloads
+      // by returning true from onDownload; otherwise the link's own download runs.
+      var link = e.target.closest('a.cp-res');
+      if (link && typeof self.opts.onDownload === 'function') {
+        var file = { url: link.getAttribute('href'), filename: (link.getAttribute('href') || '').split('/').pop() };
+        if (self.opts.onDownload(file)) e.preventDefault();
+        return;
+      }
       var target = e.target.closest('[data-act]');
       if (!target || !self.el.contains(target) || target.disabled) return;
       self.interacted = true;
@@ -284,6 +294,8 @@
         case 'keep': self.closeExitDialog(); break;
         case 'confirm-exit': self.confirmExit(); break;
         case 'close-course': self.closeCourse(); break;
+        case 'resources': self.openResources(); break;
+        case 'resources-close': self.closeExitDialog(); break;
         case 'resume': self.resume(); break;
       }
     });
@@ -507,6 +519,45 @@
     this.slots.overlay.querySelector('[data-act=keep]').focus();
   };
 
+  // Pop-up listing the course's shared documents (PDFs, slide decks).
+  // Entries come from course.resources: { title, type: 'pdf' | 'pptx', url, description }.
+  CoursePlayer.prototype.openResources = function () {
+    this.pause();
+    this.dialogOpen = true;
+    this.lastFocus = document.activeElement;
+    var list = this.course.resources || [];
+    var rows = list.map(function (r) {
+      var kind = r.type === 'pptx' ? 'PowerPoint' : 'PDF';
+      var icon = r.type === 'pptx' ? '\uD83D\uDCCA' : '\uD83D\uDCD5';
+      var inner = '<span class="cp-res__icon" aria-hidden="true">' + icon + '</span>' +
+        '<span class="cp-res__text"><span class="cp-res__title">' + esc(r.title) + '</span>' +
+        (r.description ? '<span class="cp-res__sub">' + esc(r.description) + '</span>' : '') + '</span>' +
+        '<span class="cp-res__kind">' + (r.url ? 'Download ' + kind : 'Coming soon') + '</span>';
+      return r.url
+        ? '<li><a class="cp-res" href="' + esc(r.url) + '" download aria-label="Download ' + esc(r.title) + ' (' + kind + ')">' + inner + '</a></li>'
+        : '<li><div class="cp-res cp-res--soon">' + inner + '</div></li>';
+    }).join('');
+    this.slots.overlay.innerHTML =
+      '<div class="cp-dialog-layer">' +
+        '<div class="cp-dialog cp-dialog--resources" role="dialog" aria-modal="true" aria-labelledby="cp-res-title">' +
+          '<div class="cp-dialog__head"><h2 id="cp-res-title">Course resources</h2>' +
+            '<button type="button" class="cp-btn cp-btn--ghost" data-act="resources-close" aria-label="Close resources" title="Close">' + ICON.close + '</button></div>' +
+          (rows ? '<ul class="cp-res-list">' + rows + '</ul>' : '<p>No resources have been shared yet.</p>') +
+        '</div>' +
+      '</div>';
+    this.setInert(true);
+    var self = this;
+    this.trap = function (e) {
+      if (e.key !== 'Tab') return;
+      var els = self.slots.overlay.querySelectorAll('button, a[href]');
+      var first = els[0], last = els[els.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+    this.slots.overlay.addEventListener('keydown', this.trap);
+    this.slots.overlay.querySelector('[data-act=resources-close]').focus();
+  };
+
   CoursePlayer.prototype.closeExitDialog = function () {
     this.dialogOpen = false;
     this.slots.overlay.removeEventListener('keydown', this.trap);
@@ -634,7 +685,10 @@
     var focusedIdx = document.activeElement && document.activeElement.getAttribute &&
       this.slots['menu-list'].contains(document.activeElement) ? document.activeElement.getAttribute('data-idx') : null;
 
-    var html = '';
+    var html = (this.course.resources && this.course.resources.length)
+      ? '<button type="button" class="cp-btn cp-btn--outline cp-menu-resources" data-act="resources" aria-haspopup="dialog">' +
+          '<span aria-hidden="true">\uD83D\uDCC4</span> Resources</button>'
+      : '';
     this.course.modules.forEach(function (mod, m) {
       var pages = self.pages.filter(function (p) { return p.module === m; });
       var done = pages.filter(function (p) { return s.completed.has(p.index); }).length;

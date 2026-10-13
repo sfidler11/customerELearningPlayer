@@ -98,6 +98,7 @@
 .cp-bar { position: relative; height: 8px; border-radius: 99px; background: var(--track); overflow: hidden; }
 .cp-bar > span { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: var(--brand); transition: width .4s ease; }
 .cp-completion .cp-bar { width: 200px; }
+.cp-resources-btn { width: 44px; padding: 0; font-size: 20px; }
 
 /* ---------- Body / menu ---------- */
 .cp-body { flex: 1; min-height: 0; display: flex; position: relative; }
@@ -120,6 +121,7 @@
 .cp-menu__count { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
 .cp-menu__head .cp-bar { height: 6px; }
 .cp-menu__list { flex: 1; overflow-y: auto; padding: 8px 12px 24px; }
+.cp-menu-resources { width: 100%; justify-content: flex-start; margin-top: 4px; }
 .cp-module { margin-top: 12px; }
 .cp-module__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; padding: 8px 8px 6px; }
 .cp-module__eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--brand-strong); }
@@ -298,6 +300,19 @@
 .cp-dialog { width: 100%; max-width: 420px; background: var(--surface); border-radius: 14px; box-shadow: var(--shadow-dialog); padding: 24px; }
 .cp-dialog h2 { margin: 0 0 8px; font-size: 22px; letter-spacing: -.01em; }
 .cp-dialog p { margin: 0 0 22px; color: var(--ink-2); font-size: 15px; }
+.cp-dialog--resources { max-width: 520px; max-height: 100%; display: flex; flex-direction: column; }
+.cp-dialog--resources p { margin-bottom: 0; }
+.cp-dialog__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.cp-dialog__head h2 { margin: 0; }
+.cp-res-list { list-style: none; margin: 0; padding: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+.cp-res { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; color: inherit; text-decoration: none; background: var(--surface); }
+a.cp-res:hover { background: var(--hover); border-color: var(--brand-border); }
+.cp-res--soon { opacity: .7; }
+.cp-res__icon { font-size: 24px; flex: none; }
+.cp-res__text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.cp-res__title { font-size: 15px; font-weight: 600; line-height: 1.3; }
+.cp-res__sub { font-size: 13px; color: var(--muted); }
+.cp-res__kind { flex: none; font-size: 12px; font-weight: 600; color: var(--brand-strong); }
 .cp-dialog__actions { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
 .cp-saved { position: absolute; inset: 0; z-index: 11; display: grid; place-items: center; padding: 24px; background: var(--canvas); text-align: center; }
 .cp-saved__card { max-width: 440px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow-card); padding: 40px 32px; }
