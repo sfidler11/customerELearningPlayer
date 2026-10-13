@@ -94,6 +94,7 @@
     this.opts = {
       viewport: opts.viewport || 'auto',
       persist: opts.persist !== false,
+      onClose: opts.onClose || null,
       height: opts.height || null
     };
 
@@ -282,6 +283,7 @@
         case 'exit': self.openExitDialog(); break;
         case 'keep': self.closeExitDialog(); break;
         case 'confirm-exit': self.confirmExit(); break;
+        case 'close-course': self.closeCourse(); break;
         case 'resume': self.resume(); break;
       }
     });
@@ -530,6 +532,29 @@
     this.slots.overlay.querySelector('[data-act=resume]').focus();
   };
 
+  // Leaves the course for good. In an LMS the host hears about it through
+  // the onClose option or a 'courseplayer:close' event on the player root;
+  // otherwise the player tries to close its own window and shows a goodbye.
+  CoursePlayer.prototype.closeCourse = function () {
+    this.save();
+    this.stopConfetti();
+    if (typeof this.opts.onClose === 'function') this.opts.onClose({ completed: this.courseDone(), pages: this.pages.length });
+    this.el.dispatchEvent(new CustomEvent('courseplayer:close', { bubbles: true, detail: { completed: this.courseDone() } }));
+    this.state.exited = true;
+    this.setInert(true);
+    this.slots.overlay.innerHTML =
+      '<div class="cp-saved" role="region" aria-labelledby="cp-saved-title">' +
+        '<div class="cp-saved__card">' +
+          '<div class="cp-check">' + ICON.check + '</div>' +
+          '<h2 id="cp-saved-title">Course closed</h2>' +
+          '<p>Your completion is saved. You can close this window now.</p>' +
+          '<button type="button" class="cp-btn cp-btn--primary" data-act="resume">Review course</button>' +
+        '</div>' +
+      '</div>';
+    this.slots.overlay.querySelector('[data-act=resume]').focus();
+    try { window.close(); } catch (e) { /* not a window we opened; the message above stands */ }
+  };
+
   CoursePlayer.prototype.resume = function () {
     this.state.exited = false;
     this.slots.overlay.innerHTML = '';
@@ -747,6 +772,7 @@
         WAFFLE_ART +
         '<h2 class="cp-done__title">' + esc(d.heading) + '</h2>' +
         '<p class="cp-done__text">' + esc(d.thanks) + '</p>' +
+        '<button type="button" class="cp-btn cp-btn--primary cp-done__close" data-act="close-course">Close Course</button>' +
       '</div>';
     }
     var groups = '';
