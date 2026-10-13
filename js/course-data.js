@@ -224,14 +224,14 @@ window.COURSE_DATA = {
         {
           title: 'You did it',
           duration: 18,
-          template: 'content',
-          imageLabel: 'photo: friends sharing a plate of waffles',
-          heading: "You're ready to make waffles",
-          body: "You've learned the tools, the batter, the cooking, and the serving.",
-          points: ['Mix gently and let it rest', 'Cook in a hot, greased iron', 'Keep waffles crisp on a rack'],
+          template: 'completion',
+          heading: 'You did it! Course completed.',
+          thanks: 'Thank you for taking Waffles 101. We hope you had fun, and that your next batch is your best yet.',
+          pendingHeading: 'Almost there',
+          pendingBody: 'Finish every page to complete the course.',
           narration: [
             'Congratulations. You have finished Waffles 101.',
-            'Remember to mix gently, cook in a hot iron, and keep your waffles crisp.',
+            'Thank you for learning with us. We hope you enjoyed it.',
             'Now go make some waffles.'
           ]
         }

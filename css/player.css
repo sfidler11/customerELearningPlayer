@@ -244,6 +244,15 @@
 .cp-tabs-empty { display: grid; place-items: center; padding: 20px; }
 .cp-waffle-art { width: 200px; max-width: 60%; height: auto; }
 
+/* Completion page */
+.cp-done { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: safe center; gap: 14px; padding: 32px; text-align: center; }
+.cp-done .cp-waffle-art { width: 160px; max-width: 50%; margin-bottom: 6px; }
+.cp-done__title { margin: 0; font-size: 44px; line-height: 1.1; font-weight: 700; letter-spacing: -.025em; max-width: 14em; }
+.cp-done__text { margin: 0; max-width: 34em; font-size: 18px; line-height: 1.55; color: var(--ink-2); }
+.cp-done--pending .cp-done__title { font-size: 34px; }
+.cp-done--pending .cp-btn { margin-top: 6px; }
+.cp-confetti { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+
 /* ---------- Toast ---------- */
 .cp-toast {
   position: absolute; right: 20px; bottom: 20px; z-index: 1; pointer-events: none;
@@ -359,6 +368,12 @@
 .cp-phone-row2 .cp-btn--outline, .cp-phone-row2 .cp-btn--primary { flex: 1; min-height: 52px; }
 .cp-phone-row2 .cp-btn--play { width: 60px; height: 60px; }
 .cp-phone-row2 .cp-btn--play svg { width: 26px; height: 26px; }
+
+/* completion: phone */
+.cp--phone .cp-done { padding: 20px 16px; }
+.cp--phone .cp-done .cp-waffle-art { width: 120px; }
+.cp--phone .cp-done__title { font-size: 30px; }
+.cp--phone .cp-done__text { font-size: 16px; }
 
 /* tabs: phone */
 .cp--phone .cp-tabs-slide { padding: 16px; gap: 14px; }
