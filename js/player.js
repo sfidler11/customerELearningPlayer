@@ -523,9 +523,9 @@
       var inner = '<span class="cp-res__icon" aria-hidden="true">' + icon + '</span>' +
         '<span class="cp-res__text"><span class="cp-res__title">' + esc(r.title) + '</span>' +
         (r.description ? '<span class="cp-res__sub">' + esc(r.description) + '</span>' : '') + '</span>' +
-        '<span class="cp-res__kind">' + (r.url ? kind : 'Coming soon') + '</span>';
+        '<span class="cp-res__kind">' + (r.url ? 'Download ' + kind : 'Coming soon') + '</span>';
       return r.url
-        ? '<li><a class="cp-res" href="' + esc(r.url) + '" target="_blank" rel="noopener">' + inner + '</a></li>'
+        ? '<li><a class="cp-res" href="' + esc(r.url) + '" download aria-label="Download ' + esc(r.title) + ' (' + kind + ')">' + inner + '</a></li>'
         : '<li><div class="cp-res cp-res--soon">' + inner + '</div></li>';
     }).join('');
     this.slots.overlay.innerHTML =
