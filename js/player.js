@@ -685,7 +685,10 @@
     var focusedIdx = document.activeElement && document.activeElement.getAttribute &&
       this.slots['menu-list'].contains(document.activeElement) ? document.activeElement.getAttribute('data-idx') : null;
 
-    var html = '';
+    var html = (this.course.resources && this.course.resources.length)
+      ? '<button type="button" class="cp-btn cp-btn--outline cp-menu-resources" data-act="resources" aria-haspopup="dialog">' +
+          '<span aria-hidden="true">\uD83D\uDCC4</span> Resources</button>'
+      : '';
     this.course.modules.forEach(function (mod, m) {
       var pages = self.pages.filter(function (p) { return p.module === m; });
       var done = pages.filter(function (p) { return s.completed.has(p.index); }).length;
