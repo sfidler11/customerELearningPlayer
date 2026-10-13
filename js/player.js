@@ -177,6 +177,7 @@
             '<div class="cp-completion__label" aria-hidden="true"><span class="cp-completion__word">Course Completion </span><b data-slot="pct"></b></div>' +
             '<div class="cp-bar" role="progressbar" aria-label="Course Completion" aria-valuemin="0" aria-valuemax="100" data-slot="course-bar"><span></span></div>' +
           '</div>' +
+          '<button type="button" class="cp-btn cp-btn--outline cp-resources-btn" data-act="resources" aria-haspopup="dialog" aria-label="Course resources" title="Course resources"><span aria-hidden="true">\uD83D\uDCC4</span></button>' +
           '<button type="button" class="cp-btn cp-btn--outline cp-exit" data-act="exit"><span data-slot="exit-label">Save &amp; exit</span></button>' +
         '</header>' +
         '<div class="cp-body">' +
@@ -284,6 +285,8 @@
         case 'keep': self.closeExitDialog(); break;
         case 'confirm-exit': self.confirmExit(); break;
         case 'close-course': self.closeCourse(); break;
+        case 'resources': self.openResources(); break;
+        case 'resources-close': self.closeExitDialog(); break;
         case 'resume': self.resume(); break;
       }
     });
@@ -505,6 +508,45 @@
     };
     this.slots.overlay.addEventListener('keydown', this.trap);
     this.slots.overlay.querySelector('[data-act=keep]').focus();
+  };
+
+  // Pop-up listing the course's shared documents (PDFs, slide decks).
+  // Entries come from course.resources: { title, type: 'pdf' | 'pptx', url, description }.
+  CoursePlayer.prototype.openResources = function () {
+    this.pause();
+    this.dialogOpen = true;
+    this.lastFocus = document.activeElement;
+    var list = this.course.resources || [];
+    var rows = list.map(function (r) {
+      var kind = r.type === 'pptx' ? 'PowerPoint' : 'PDF';
+      var icon = r.type === 'pptx' ? '\uD83D\uDCCA' : '\uD83D\uDCD5';
+      var inner = '<span class="cp-res__icon" aria-hidden="true">' + icon + '</span>' +
+        '<span class="cp-res__text"><span class="cp-res__title">' + esc(r.title) + '</span>' +
+        (r.description ? '<span class="cp-res__sub">' + esc(r.description) + '</span>' : '') + '</span>' +
+        '<span class="cp-res__kind">' + (r.url ? kind : 'Coming soon') + '</span>';
+      return r.url
+        ? '<li><a class="cp-res" href="' + esc(r.url) + '" target="_blank" rel="noopener">' + inner + '</a></li>'
+        : '<li><div class="cp-res cp-res--soon">' + inner + '</div></li>';
+    }).join('');
+    this.slots.overlay.innerHTML =
+      '<div class="cp-dialog-layer">' +
+        '<div class="cp-dialog cp-dialog--resources" role="dialog" aria-modal="true" aria-labelledby="cp-res-title">' +
+          '<div class="cp-dialog__head"><h2 id="cp-res-title">Course resources</h2>' +
+            '<button type="button" class="cp-btn cp-btn--ghost" data-act="resources-close" aria-label="Close resources" title="Close">' + ICON.close + '</button></div>' +
+          (rows ? '<ul class="cp-res-list">' + rows + '</ul>' : '<p>No resources have been shared yet.</p>') +
+        '</div>' +
+      '</div>';
+    this.setInert(true);
+    var self = this;
+    this.trap = function (e) {
+      if (e.key !== 'Tab') return;
+      var els = self.slots.overlay.querySelectorAll('button, a[href]');
+      var first = els[0], last = els[els.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+    this.slots.overlay.addEventListener('keydown', this.trap);
+    this.slots.overlay.querySelector('[data-act=resources-close]').focus();
   };
 
   CoursePlayer.prototype.closeExitDialog = function () {
