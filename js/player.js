@@ -43,6 +43,24 @@
     current: '<svg class="cp-status" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.5" fill="none" stroke="#CC5500" stroke-width="2"/><circle cx="10" cy="10" r="4" fill="#CC5500"/></svg>'
   };
 
+  // Generic waffle picture shown on the tabs page when no tool is selected.
+  var WAFFLE_ART = (function () {
+    var lines = '';
+    for (var i = 0; i < 5; i++) {
+      var v = 48 + i * 36;
+      lines += '<path d="M' + v + ' 20V220M20 ' + v + 'H220"/>';
+    }
+    return '<svg class="cp-waffle-art" viewBox="0 0 240 240" role="img" aria-label="A golden waffle with butter">' +
+      '<defs><clipPath id="cp-waffle-clip"><circle cx="120" cy="120" r="98"/></clipPath></defs>' +
+      '<circle cx="120" cy="124" r="108" fill="#000" opacity=".08"/>' +
+      '<circle cx="120" cy="120" r="108" fill="#C77A1E"/>' +
+      '<circle cx="120" cy="120" r="98" fill="#E9A23B"/>' +
+      '<g clip-path="url(#cp-waffle-clip)" fill="none" stroke="#B86A14" stroke-width="9" stroke-linecap="round">' + lines + '</g>' +
+      '<rect x="98" y="98" width="44" height="44" rx="8" fill="#FFE8A3" transform="rotate(-8 120 120)"/>' +
+      '<rect x="98" y="98" width="44" height="14" rx="7" fill="#FFF4CC" transform="rotate(-8 120 120)"/>' +
+    '</svg>';
+  })();
+
   function esc(value) {
     return String(value == null ? '' : value)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -443,6 +461,7 @@
       tabs[k].classList.toggle('is-open', on);
       panels[k].classList.toggle('is-open', on);
     }
+    this.slots.region.querySelector('[data-role=tabs-empty]').hidden = open !== -1;
   };
 
   CoursePlayer.prototype.showToast = function () {
@@ -742,7 +761,9 @@
         '<p class="cp-body-text">' + esc(d.lede) + '</p>' +
       '</div>' +
       '<div class="cp-tablist" role="tablist" aria-label="' + esc(d.title) + '">' + tabs + '</div>' +
-      '<div class="cp-tabpanels">' + panels + '</div>' +
+      '<div class="cp-tabpanels">' + panels +
+        '<div class="cp-tabs-empty" data-role="tabs-empty"' + (open === -1 ? '' : ' hidden') + '>' + WAFFLE_ART + '</div>' +
+      '</div>' +
     '</div>';
   };
 
