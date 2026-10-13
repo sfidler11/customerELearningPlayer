@@ -251,9 +251,10 @@
 .cp-done__text { margin: 0; max-width: 34em; font-size: 18px; line-height: 1.55; color: var(--ink-2); }
 .cp-done--pending .cp-done__title { font-size: 34px; }
 .cp-done__close { margin-top: 10px; }
-.cp-todo__group { margin-top: 10px; }
+.cp-todo__cols { display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; gap: 20px 40px; margin-top: 10px; }
+.cp-todo__group { flex: 0 1 auto; min-width: 0; }
 .cp-todo__module { margin: 0 0 4px; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
-.cp-todo { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.cp-todo { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
 .cp-link { background: none; border: 0; padding: 4px 2px; font: inherit; font-size: 16px; font-weight: 600; color: var(--brand-strong); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; border-radius: 4px; }
 .cp-link:hover { color: var(--brand); }
 .cp-confetti { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
@@ -412,3 +413,5 @@
 @media (prefers-reduced-motion: reduce) {
   .cp *, .cp *::before, .cp *::after { transition-duration: 0s !important; transition-delay: 0s !important; }
 }
+.cp--phone .cp-todo__cols { flex-direction: column; align-items: center; }
+.cp--phone .cp-todo { align-items: center; }

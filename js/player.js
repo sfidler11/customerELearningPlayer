@@ -785,6 +785,7 @@
       }
       if (links) groups += '<div class="cp-todo__group"><h3 class="cp-todo__module">Module ' + (m + 1) + ' · ' + esc(this.course.modules[m].title) + '</h3><ul class="cp-todo">' + links + '</ul></div>';
     }
+    if (groups) groups = '<div class="cp-todo__cols">' + groups + '</div>';
     return '<div class="cp-done cp-done--pending">' +
       '<h2 class="cp-done__title">' + esc(d.pendingHeading) + '</h2>' +
       '<p class="cp-done__text">' + esc(d.pendingBody) + ' You have finished ' + s.completed.size + ' of ' + this.pages.length + ' pages. Still to finish:</p>' +
