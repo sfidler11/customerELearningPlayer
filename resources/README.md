@@ -1,5 +1,7 @@
 # Course resources
 
+Currently: `Waffles_Job_Aid.pdf`.
+
 Put the PDFs and PowerPoint files for the "Course resources" pop-up in this folder.
 
 Then add each one to `COURSE_DATA.resources` in `js/course-data.js`, for example:

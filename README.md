@@ -56,7 +56,7 @@ The layout mode comes from the player's own width (desktop ≥ 1024px, tablet 64
 - `completion`: the last page. Shows `heading` and `thanks` with confetti once every page is complete, and `pendingHeading` and `pendingBody` until then. Confetti is skipped when the visitor prefers reduced motion.
 - `accordion`: intro plus expandable list. Fields: `heading`, `lede`, `image`, `imageLabel`, `items` (`name`, `description`, `amount`).
 
-`COURSE_DATA.resources` lists the documents behind the document icon in the header: each has a `title`, a `type` (`'pdf'` or `'pptx'`), a `url` and an optional `description`. An entry with an empty `url` shows as "Coming soon". Keep the files in the `resources/` folder (see its README) and replace the three placeholder entries with your own.
+`COURSE_DATA.resources` lists the documents behind the document icon in the header: each has a `title`, a `type` (`'pdf'` or `'pptx'`), a `url` and an optional `description`. An entry with an empty `url` shows as "Coming soon". Keep the files in the `resources/` folder (see its README) and add one entry per file.
 
 Leave `image` empty to show the striped placeholder with `imageLabel`, or set it to an image URL.
 

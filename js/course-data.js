@@ -15,9 +15,7 @@ window.COURSE_DATA = {
   // type: 'pdf' | 'pptx'. Put the files in the resources/ folder and set url to e.g. 'resources/guide.pdf'.
   // Leave url empty to show the row as "Coming soon".
   resources: [
-    { title: 'Waffle recipe card', type: 'pdf', url: '', description: 'Printable recipe and ingredient list' },
-    { title: 'Waffle iron troubleshooting guide', type: 'pdf', url: '', description: 'Fixes for sticking and uneven cooking' },
-    { title: 'Waffles 101 slide deck', type: 'pptx', url: '', description: 'The full course in slides' }
+    { title: 'Waffles job aid', type: 'pdf', url: 'resources/Waffles_Job_Aid.pdf', description: 'Classic Golden Waffles: ingredients and method' }
   ],
   modules: [
     {
