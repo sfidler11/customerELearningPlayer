@@ -749,14 +749,15 @@
         '<p class="cp-done__text">' + esc(d.thanks) + '</p>' +
       '</div>';
     }
-    var left = null;
+    var links = '';
     for (var i = 0; i < this.pages.length; i++) {
-      if (!s.completed.has(i) && i !== s.idx) { left = i; break; }
+      if (s.completed.has(i) || i === s.idx) continue;
+      links += '<li><button type="button" class="cp-link" data-act="goto" data-idx="' + i + '">Page ' + (i + 1) + ': ' + esc(this.pages[i].data.title) + '</button></li>';
     }
     return '<div class="cp-done cp-done--pending">' +
       '<h2 class="cp-done__title">' + esc(d.pendingHeading) + '</h2>' +
-      '<p class="cp-done__text">' + esc(d.pendingBody) + ' You have finished ' + s.completed.size + ' of ' + this.pages.length + ' pages.</p>' +
-      (left != null ? '<button type="button" class="cp-btn cp-btn--primary" data-act="goto" data-idx="' + left + '">Go to page ' + (left + 1) + '</button>' : '') +
+      '<p class="cp-done__text">' + esc(d.pendingBody) + ' You have finished ' + s.completed.size + ' of ' + this.pages.length + ' pages. Still to finish:</p>' +
+      (links ? '<ul class="cp-todo">' + links + '</ul>' : '') +
     '</div>';
   };
 
