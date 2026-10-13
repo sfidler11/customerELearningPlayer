@@ -250,7 +250,9 @@
 .cp-done__title { margin: 0; font-size: 44px; line-height: 1.1; font-weight: 700; letter-spacing: -.025em; max-width: 14em; }
 .cp-done__text { margin: 0; max-width: 34em; font-size: 18px; line-height: 1.55; color: var(--ink-2); }
 .cp-done--pending .cp-done__title { font-size: 34px; }
-.cp-todo { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 16px; max-width: 40em; }
+.cp-todo__group { margin-top: 10px; }
+.cp-todo__module { margin: 0 0 4px; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.cp-todo { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .cp-link { background: none; border: 0; padding: 4px 2px; font: inherit; font-size: 16px; font-weight: 600; color: var(--brand-strong); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; border-radius: 4px; }
 .cp-link:hover { color: var(--brand); }
 .cp-confetti { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }

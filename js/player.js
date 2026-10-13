@@ -749,15 +749,20 @@
         '<p class="cp-done__text">' + esc(d.thanks) + '</p>' +
       '</div>';
     }
-    var links = '';
-    for (var i = 0; i < this.pages.length; i++) {
-      if (s.completed.has(i) || i === s.idx) continue;
-      links += '<li><button type="button" class="cp-link" data-act="goto" data-idx="' + i + '">Page ' + (i + 1) + ': ' + esc(this.pages[i].data.title) + '</button></li>';
+    var groups = '';
+    for (var m = 0; m < this.course.modules.length; m++) {
+      var links = '';
+      for (var i = 0; i < this.pages.length; i++) {
+        var pg = this.pages[i];
+        if (pg.module !== m || s.completed.has(i) || i === s.idx) continue;
+        links += '<li><button type="button" class="cp-link" data-act="goto" data-idx="' + i + '">Page ' + (i + 1) + ': ' + esc(pg.data.title) + '</button></li>';
+      }
+      if (links) groups += '<div class="cp-todo__group"><h3 class="cp-todo__module">Module ' + (m + 1) + ' · ' + esc(this.course.modules[m].title) + '</h3><ul class="cp-todo">' + links + '</ul></div>';
     }
     return '<div class="cp-done cp-done--pending">' +
       '<h2 class="cp-done__title">' + esc(d.pendingHeading) + '</h2>' +
       '<p class="cp-done__text">' + esc(d.pendingBody) + ' You have finished ' + s.completed.size + ' of ' + this.pages.length + ' pages. Still to finish:</p>' +
-      (links ? '<ul class="cp-todo">' + links + '</ul>' : '') +
+      groups +
     '</div>';
   };
 
