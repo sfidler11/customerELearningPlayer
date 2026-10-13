@@ -656,9 +656,20 @@
     if (!done) return;
     done.classList.remove('cp-done--compact');
     done.style.zoom = '';
+    done.style.removeProperty('--art');
     var avail = region.clientHeight;
     if (region.scrollHeight <= avail + 1) return;
-    done.classList.add('cp-done--compact');
+    // Desktop keeps the picture and shrinks it; smaller layouts drop it.
+    if (this.state.mode === 'desktop') {
+      done.classList.add('cp-done--tight');
+      var art = Math.max(56, 160 - (region.scrollHeight - avail));
+      if (region.scrollHeight > avail + 1) done.style.setProperty('--art', art + 'px');
+      if (region.scrollHeight <= avail + 1) return;
+    } else {
+      done.classList.add('cp-done--compact');
+      if (region.scrollHeight <= avail + 1) return;
+    }
+    done.classList.add('cp-done--tight');
     var need = region.scrollHeight;
     if (need > avail + 1) done.style.zoom = String(Math.max(0.5, avail / need));
   };
