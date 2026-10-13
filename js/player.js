@@ -645,6 +645,33 @@
     this.slots['exit-label'].textContent = s.mode === 'phone' ? 'Exit' : 'Save & exit';
     this.slots['exit-label'].parentNode.setAttribute('aria-label', 'Save & exit');
     this.renderMenuState();
+    this.fitCompletion();
+  };
+
+  // The completion screen should never need scrolling: drop the picture first,
+  // then shrink the whole screen if the player is still too short for it.
+  CoursePlayer.prototype.fitCompletion = function () {
+    var region = this.slots.region;
+    var done = region && region.querySelector('.cp-done:not(.cp-done--pending)');
+    if (!done) return;
+    done.classList.remove('cp-done--compact');
+    done.style.zoom = '';
+    done.style.removeProperty('--art');
+    var avail = region.clientHeight;
+    if (region.scrollHeight <= avail + 1) return;
+    // Desktop keeps the picture and shrinks it; smaller layouts drop it.
+    if (this.state.mode === 'desktop') {
+      done.classList.add('cp-done--tight');
+      var art = Math.max(56, 160 - (region.scrollHeight - avail));
+      if (region.scrollHeight > avail + 1) done.style.setProperty('--art', art + 'px');
+      if (region.scrollHeight <= avail + 1) return;
+    } else {
+      done.classList.add('cp-done--compact');
+      if (region.scrollHeight <= avail + 1) return;
+    }
+    done.classList.add('cp-done--tight');
+    var need = region.scrollHeight;
+    if (need > avail + 1) done.style.zoom = String(Math.max(0.5, avail / need));
   };
 
   CoursePlayer.prototype.renderMenuState = function () {
@@ -755,6 +782,7 @@
     void bar.offsetWidth;
     bar.classList.remove('cp-no-anim');
 
+    this.fitCompletion();
     this.renderCaptionText();
     this.stopConfetti();
     if (d.template === 'completion' && this.courseDone()) this.startConfetti();
