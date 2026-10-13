@@ -226,8 +226,10 @@
   min-height: 52px; padding: 8px 12px; border-radius: 10px; cursor: pointer;
   background: var(--surface); border: 1px solid var(--line-strong); color: var(--ink);
   font-size: 15px; font-weight: 600; line-height: 1.25; text-align: center;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
   transition: background-color .2s ease, border-color .2s ease, color .2s ease;
 }
+.cp-tab__icon { font-size: 22px; line-height: 1; }
 .cp-tab:hover { background: var(--hover); }
 .cp-tab.is-open { background: var(--brand-tint); border-color: var(--brand); color: var(--brand-strong); }
 .cp-tabpanel { display: grid; grid-template-rows: 0fr; visibility: hidden; transition: grid-template-rows .28s var(--ease), visibility 0s linear .28s; }
@@ -359,7 +361,8 @@
 /* tabs: phone */
 .cp--phone .cp-tabs-slide { padding: 16px; gap: 14px; }
 .cp--phone .cp-tablist { gap: 6px; }
-.cp--phone .cp-tab { padding: 6px 4px; font-size: 13px; }
+.cp--phone .cp-tab { flex-direction: column; gap: 2px; padding: 6px 4px; font-size: 13px; }
+.cp--phone .cp-tab__icon { font-size: 20px; }
 .cp--phone .cp-tabpanel__inner { grid-template-columns: 1fr; gap: 14px; padding: 14px; }
 .cp--phone .cp-tabpanel__inner .cp-img { min-height: 140px; }
 .cp--phone .cp-tabpanel__text { padding: 14px 16px; }

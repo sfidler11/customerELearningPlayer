@@ -39,24 +39,28 @@ window.COURSE_DATA = {
           items: [
             {
               name: 'Waffle iron',
+              icon: '🧇',
               description: 'The one special tool. Two heated grids close around the batter and cook it from both sides at once. Round or square, any shape works.',
               tip: 'Pick one with a ready light.',
               imageLabel: 'photo: waffle iron open on the counter'
             },
             {
               name: 'Mixing bowls',
+              icon: '🥣',
               description: 'You need two. Mix the dry ingredients in one and the wet ingredients in the other, then combine them.',
               tip: 'A large bowl for the batter helps you fold gently.',
               imageLabel: 'photo: two mixing bowls, one with flour and one with eggs and milk'
             },
             {
               name: 'Whisk and spatula',
+              icon: '🥄',
               description: 'Use the whisk to break up lumps in each bowl. Use a flexible spatula to fold the wet mix into the dry mix without overmixing.',
               tip: 'Stop folding as soon as the dry flour disappears.',
               imageLabel: 'photo: whisk and spatula resting on a bowl'
             },
             {
               name: 'Ladle or measuring cup',
+              icon: '🥛',
               description: 'A ladle or a measuring cup pours the same amount of batter every time, so your waffles cook evenly.',
               tip: 'About three-quarters of a cup fills most irons.',
               imageLabel: 'photo: ladle pouring batter into a measuring cup'

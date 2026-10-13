@@ -719,7 +719,9 @@
       var isOpen = i === open;
       var id = 'cp-tab-' + n + '-' + i;
       return '<button type="button" class="cp-tab' + (isOpen ? ' is-open' : '') + '" role="tab" id="' + id + '" data-act="tab" data-item="' + i + '"' +
-        ' aria-selected="' + isOpen + '" aria-controls="' + id + '-panel">' + esc(it.name) + '</button>';
+        ' aria-selected="' + isOpen + '" aria-controls="' + id + '-panel">' +
+        (it.icon ? '<span class="cp-tab__icon" aria-hidden="true">' + esc(it.icon) + '</span>' : '') +
+        '<span>' + esc(it.name) + '</span></button>';
     }).join('');
     var panels = items.map(function (it, i) {
       var isOpen = i === open;
