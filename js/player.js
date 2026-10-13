@@ -94,6 +94,7 @@
     this.opts = {
       viewport: opts.viewport || 'auto',
       persist: opts.persist !== false,
+      onClose: opts.onClose || null,
       height: opts.height || null
     };
 
@@ -282,6 +283,7 @@
         case 'exit': self.openExitDialog(); break;
         case 'keep': self.closeExitDialog(); break;
         case 'confirm-exit': self.confirmExit(); break;
+        case 'close-course': self.closeCourse(); break;
         case 'resume': self.resume(); break;
       }
     });
@@ -405,6 +407,7 @@
     this.renderProgress();
     this.renderMenu();
     this.showToast();
+    if (idx === s.idx && this.page().data.template === 'completion') this.renderPage();
   };
 
   CoursePlayer.prototype.toggleMute = function () {
@@ -527,6 +530,29 @@
         '</div>' +
       '</div>';
     this.slots.overlay.querySelector('[data-act=resume]').focus();
+  };
+
+  // Leaves the course for good. In an LMS the host hears about it through
+  // the onClose option or a 'courseplayer:close' event on the player root;
+  // otherwise the player tries to close its own window and shows a goodbye.
+  CoursePlayer.prototype.closeCourse = function () {
+    this.save();
+    this.stopConfetti();
+    if (typeof this.opts.onClose === 'function') this.opts.onClose({ completed: this.courseDone(), pages: this.pages.length });
+    this.el.dispatchEvent(new CustomEvent('courseplayer:close', { bubbles: true, detail: { completed: this.courseDone() } }));
+    this.state.exited = true;
+    this.setInert(true);
+    this.slots.overlay.innerHTML =
+      '<div class="cp-saved" role="region" aria-labelledby="cp-saved-title">' +
+        '<div class="cp-saved__card">' +
+          '<div class="cp-check">' + ICON.check + '</div>' +
+          '<h2 id="cp-saved-title">Course closed</h2>' +
+          '<p>Your completion is saved. You can close this window now.</p>' +
+          '<button type="button" class="cp-btn cp-btn--primary" data-act="resume">Review course</button>' +
+        '</div>' +
+      '</div>';
+    this.slots.overlay.querySelector('[data-act=resume]').focus();
+    try { window.close(); } catch (e) { /* not a window we opened; the message above stands */ }
   };
 
   CoursePlayer.prototype.resume = function () {
@@ -660,6 +686,7 @@
     if (d.template === 'title') region.innerHTML = this.tplTitle(d);
     else if (d.template === 'accordion') region.innerHTML = this.tplAccordion(d, n);
     else if (d.template === 'tabs') region.innerHTML = this.tplTabs(d, n);
+    else if (d.template === 'completion') region.innerHTML = this.tplCompletion(d);
     else region.innerHTML = this.tplContent(d, n);
 
     var counters = this.el.querySelectorAll('[data-role=counter]');
@@ -675,6 +702,8 @@
     bar.classList.remove('cp-no-anim');
 
     this.renderCaptionText();
+    this.stopConfetti();
+    if (d.template === 'completion' && this.courseDone()) this.startConfetti();
   };
 
   CoursePlayer.prototype.tplTitle = function (d) {
@@ -728,6 +757,39 @@
         imageSlot(d.image, d.imageLabel) +
       '</div>' +
       '<div class="cp-acc-list">' + items + '</div>' +
+    '</div>';
+  };
+
+  // Page 12: the finished screen once every page is complete, a progress note until then.
+  CoursePlayer.prototype.courseDone = function () {
+    return this.state.completed.size === this.pages.length;
+  };
+
+  CoursePlayer.prototype.tplCompletion = function (d) {
+    var s = this.state;
+    if (this.courseDone()) {
+      return '<div class="cp-done">' +
+        WAFFLE_ART +
+        '<h2 class="cp-done__title">' + esc(d.heading) + '</h2>' +
+        '<p class="cp-done__text">' + esc(d.thanks) + '</p>' +
+        '<button type="button" class="cp-btn cp-btn--primary cp-done__close" data-act="close-course">Close Course</button>' +
+      '</div>';
+    }
+    var groups = '';
+    for (var m = 0; m < this.course.modules.length; m++) {
+      var links = '';
+      for (var i = 0; i < this.pages.length; i++) {
+        var pg = this.pages[i];
+        if (pg.module !== m || s.completed.has(i) || i === s.idx) continue;
+        links += '<li><button type="button" class="cp-link" data-act="goto" data-idx="' + i + '">Page ' + (i + 1) + ': ' + esc(pg.data.title) + '</button></li>';
+      }
+      if (links) groups += '<div class="cp-todo__group"><h3 class="cp-todo__module">Module ' + (m + 1) + ' · ' + esc(this.course.modules[m].title) + '</h3><ul class="cp-todo">' + links + '</ul></div>';
+    }
+    if (groups) groups = '<div class="cp-todo__cols">' + groups + '</div>';
+    return '<div class="cp-done cp-done--pending">' +
+      '<h2 class="cp-done__title">' + esc(d.pendingHeading) + '</h2>' +
+      '<p class="cp-done__text">' + esc(d.pendingBody) + ' You have finished ' + s.completed.size + ' of ' + this.pages.length + ' pages. Still to finish:</p>' +
+      groups +
     '</div>';
   };
 
@@ -835,9 +897,93 @@
     this.renderActiveLine();
   };
 
+  /* ---------- Confetti ---------- */
+
+  var CONFETTI_COLORS = ['#CC5500', '#A84600', '#F2A541', '#FFD166', '#F7E3C6', '#E8C9B3', '#4A4540'];
+  var CONFETTI_BURSTS = 3;
+  var CONFETTI_GAP = 1500;
+  var CONFETTI_MS = 4200 + (CONFETTI_BURSTS - 1) * CONFETTI_GAP;
+
+  // Fires once from the bottom corners of the content area. Skipped for people who ask for less motion.
+  CoursePlayer.prototype.startConfetti = function () {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var frame = this.el.querySelector('.cp-frame');
+    if (!frame) return;
+    var canvas = document.createElement('canvas');
+    canvas.className = 'cp-confetti';
+    canvas.setAttribute('aria-hidden', 'true');
+    frame.appendChild(canvas);
+    var dpr = window.devicePixelRatio || 1;
+    var w = frame.clientWidth, h = frame.clientHeight;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    var ctx = canvas.getContext('2d');
+    if (!ctx) { canvas.remove(); return; }
+    ctx.scale(dpr, dpr);
+
+    var pieces = [];
+    for (var i = 0; i < 160 * CONFETTI_BURSTS; i++) {
+      var fromLeft = i % 2 === 0;
+      var angle = (fromLeft ? -60 : -120) + (Math.random() - 0.5) * 40;
+      var speed = (0.7 + Math.random() * 0.6) * Math.min(h, 700) * 1.25;
+      pieces.push({
+        x: fromLeft ? w * 0.08 : w * 0.92,
+        y: h,
+        vx: Math.cos(angle * Math.PI / 180) * speed,
+        vy: Math.sin(angle * Math.PI / 180) * speed,
+        size: 6 + Math.random() * 6,
+        rot: Math.random() * Math.PI * 2,
+        spin: (Math.random() - 0.5) * 12,
+        color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+        round: Math.random() < 0.25,
+        delay: Math.floor(i / 160) * CONFETTI_GAP
+      });
+    }
+
+    var start = null, last = null, self = this;
+    this.confetti = { canvas: canvas, raf: 0 };
+    function frameFn(now) {
+      if (start == null) { start = now; last = now; }
+      var dt = Math.min((now - last) / 1000, 0.05);
+      last = now;
+      var elapsed = now - start;
+      ctx.clearRect(0, 0, w, h);
+      var fade = elapsed > CONFETTI_MS - 800 ? Math.max(0, (CONFETTI_MS - elapsed) / 800) : 1;
+      ctx.globalAlpha = fade;
+      for (var k = 0; k < pieces.length; k++) {
+        var q = pieces[k];
+        if (elapsed < q.delay) continue;
+        q.vy += 900 * dt;
+        q.vx *= 1 - 0.9 * dt;
+        q.vy *= 1 - 0.35 * dt;
+        q.x += q.vx * dt;
+        q.y += q.vy * dt;
+        q.rot += q.spin * dt;
+        ctx.save();
+        ctx.translate(q.x, q.y);
+        ctx.rotate(q.rot);
+        ctx.fillStyle = q.color;
+        if (q.round) { ctx.beginPath(); ctx.arc(0, 0, q.size / 2, 0, Math.PI * 2); ctx.fill(); }
+        else ctx.fillRect(-q.size / 2, -q.size / 4, q.size, q.size / 2);
+        ctx.restore();
+      }
+      if (elapsed >= CONFETTI_MS) { self.stopConfetti(); return; }
+      self.confetti.raf = requestAnimationFrame(frameFn);
+    }
+    this.confetti.raf = requestAnimationFrame(frameFn);
+  };
+
+  CoursePlayer.prototype.stopConfetti = function () {
+    if (!this.confetti) return;
+    cancelAnimationFrame(this.confetti.raf);
+    if (this.confetti.canvas.parentNode) this.confetti.canvas.parentNode.removeChild(this.confetti.canvas);
+    this.confetti = null;
+  };
+
   CoursePlayer.prototype.destroy = function () {
     this.stopTimer();
     clearTimeout(this.toastTimer);
+    this.stopConfetti();
     if (this.ro) this.ro.disconnect();
     this.root.innerHTML = '';
   };
