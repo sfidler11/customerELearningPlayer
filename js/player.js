@@ -645,6 +645,22 @@
     this.slots['exit-label'].textContent = s.mode === 'phone' ? 'Exit' : 'Save & exit';
     this.slots['exit-label'].parentNode.setAttribute('aria-label', 'Save & exit');
     this.renderMenuState();
+    this.fitCompletion();
+  };
+
+  // The completion screen should never need scrolling: drop the picture first,
+  // then shrink the whole screen if the player is still too short for it.
+  CoursePlayer.prototype.fitCompletion = function () {
+    var region = this.slots.region;
+    var done = region && region.querySelector('.cp-done:not(.cp-done--pending)');
+    if (!done) return;
+    done.classList.remove('cp-done--compact');
+    done.style.zoom = '';
+    var avail = region.clientHeight;
+    if (region.scrollHeight <= avail + 1) return;
+    done.classList.add('cp-done--compact');
+    var need = region.scrollHeight;
+    if (need > avail + 1) done.style.zoom = String(Math.max(0.5, avail / need));
   };
 
   CoursePlayer.prototype.renderMenuState = function () {
@@ -755,6 +771,7 @@
     void bar.offsetWidth;
     bar.classList.remove('cp-no-anim');
 
+    this.fitCompletion();
     this.renderCaptionText();
     this.stopConfetti();
     if (d.template === 'completion' && this.courseDone()) this.startConfetti();
