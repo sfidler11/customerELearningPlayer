@@ -873,7 +873,9 @@
   /* ---------- Confetti ---------- */
 
   var CONFETTI_COLORS = ['#CC5500', '#A84600', '#F2A541', '#FFD166', '#F7E3C6', '#E8C9B3', '#4A4540'];
-  var CONFETTI_MS = 4200;
+  var CONFETTI_BURSTS = 3;
+  var CONFETTI_GAP = 1500;
+  var CONFETTI_MS = 4200 + (CONFETTI_BURSTS - 1) * CONFETTI_GAP;
 
   // Fires once from the bottom corners of the content area. Skipped for people who ask for less motion.
   CoursePlayer.prototype.startConfetti = function () {
@@ -893,7 +895,7 @@
     ctx.scale(dpr, dpr);
 
     var pieces = [];
-    for (var i = 0; i < 160; i++) {
+    for (var i = 0; i < 160 * CONFETTI_BURSTS; i++) {
       var fromLeft = i % 2 === 0;
       var angle = (fromLeft ? -60 : -120) + (Math.random() - 0.5) * 40;
       var speed = (0.7 + Math.random() * 0.6) * Math.min(h, 700) * 1.25;
@@ -906,7 +908,8 @@
         rot: Math.random() * Math.PI * 2,
         spin: (Math.random() - 0.5) * 12,
         color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
-        round: Math.random() < 0.25
+        round: Math.random() < 0.25,
+        delay: Math.floor(i / 160) * CONFETTI_GAP
       });
     }
 
@@ -922,6 +925,7 @@
       ctx.globalAlpha = fade;
       for (var k = 0; k < pieces.length; k++) {
         var q = pieces[k];
+        if (elapsed < q.delay) continue;
         q.vy += 900 * dt;
         q.vx *= 1 - 0.9 * dt;
         q.vy *= 1 - 0.35 * dt;
