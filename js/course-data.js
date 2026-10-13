@@ -12,7 +12,8 @@ window.COURSE_DATA = {
   title: 'Waffles 101',
   storageKey: 'waffles101-player',
   // Documents shared with the learner (the document icon in the header).
-  // type: 'pdf' | 'pptx'. Leave url empty to show the row as "Coming soon".
+  // type: 'pdf' | 'pptx'. Put the files in the resources/ folder and set url to e.g. 'resources/guide.pdf'.
+  // Leave url empty to show the row as "Coming soon".
   resources: [
     { title: 'Waffle recipe card', type: 'pdf', url: '', description: 'Printable recipe and ingredient list' },
     { title: 'Waffle iron troubleshooting guide', type: 'pdf', url: '', description: 'Fixes for sticking and uneven cooking' },
