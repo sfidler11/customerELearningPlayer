@@ -95,6 +95,7 @@
       viewport: opts.viewport || 'auto',
       persist: opts.persist !== false,
       onClose: opts.onClose || null,
+      onDownload: opts.onDownload || null,
       height: opts.height || null
     };
 
@@ -264,6 +265,14 @@
     var self = this;
 
     this.el.addEventListener('click', function (e) {
+      // A host (an LMS wrapper, a sandboxed preview) can take over resource downloads
+      // by returning true from onDownload; otherwise the link's own download runs.
+      var link = e.target.closest('a.cp-res');
+      if (link && typeof self.opts.onDownload === 'function') {
+        var file = { url: link.getAttribute('href'), filename: (link.getAttribute('href') || '').split('/').pop() };
+        if (self.opts.onDownload(file)) e.preventDefault();
+        return;
+      }
       var target = e.target.closest('[data-act]');
       if (!target || !self.el.contains(target) || target.disabled) return;
       self.interacted = true;

@@ -40,6 +40,7 @@ new CoursePlayer(element, window.COURSE_DATA, {
   initialTime: 0,
   height: null,       // e.g. 720 or '80vh'; defaults to filling the container
   persist: true,      // save progress to localStorage
+  onDownload: function (file) {},  // optional: return true to handle a resource download yourself ({ url, filename })
   onClose: function (info) {}  // called when the learner presses Close Course on the completion page (e.g. tell the LMS)
 });
 ```
