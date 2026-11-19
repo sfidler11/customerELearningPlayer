@@ -81,6 +81,14 @@
     try { store.setItem(key, value); } catch (e) { /* storage unavailable */ }
   }
 
+  // A grid of emoji icons with labels, used in place of a photo. icons: [{ icon, label }].
+  function iconGrid(icons) {
+    return '<ul class="cp-icons">' + icons.map(function (it) {
+      return '<li class="cp-icons__tile"><span class="cp-icons__icon" aria-hidden="true">' + esc(it.icon) + '</span>' +
+        '<span class="cp-icons__label">' + esc(it.label) + '</span></li>';
+    }).join('') + '</ul>';
+  }
+
   // pos (optional) is a CSS object-position such as 'center 70%' for choosing which part of a photo stays in view.
   function imageSlot(src, label, pos) {
     return '<div class="cp-img">' +
@@ -837,7 +845,7 @@
         '<p class="cp-eyebrow">Page ' + n + ' · ' + esc(d.title) + '</p>' +
         '<h2 class="cp-h2">' + esc(d.heading) + '</h2>' +
         '<p class="cp-body-text">' + esc(d.lede) + '</p>' +
-        imageSlot(d.image, d.imageLabel) +
+        (d.icons && d.icons.length ? iconGrid(d.icons) : imageSlot(d.image, d.imageLabel)) +
       '</div>' +
       '<div class="cp-acc-list">' + items + '</div>' +
     '</div>';

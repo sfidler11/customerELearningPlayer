@@ -55,7 +55,7 @@ The layout mode comes from the player's own width (desktop ≥ 1024px, tablet 64
 - `content`: image and text slide. Fields: `heading`, `body`, `points`, `image`, `imageLabel`.
 - `tabs`: intro plus a row of tabs. Selecting a tab opens its panel, and selecting it again closes it. Fields: `heading`, `lede`, `items` (`name`, `description`, `tip`, `image`, `imageLabel`, and optional `imagePosition`, a CSS object-position such as `center 70%` to choose which part of the photo stays in view).
 - `completion`: the last page. Shows `heading` and `thanks` with confetti once every page is complete, and `pendingHeading` and `pendingBody` until then. Confetti is skipped when the visitor prefers reduced motion.
-- `accordion`: intro plus expandable list. Fields: `heading`, `lede`, `image`, `imageLabel`, `items` (`name`, `description`, `amount`).
+- `accordion`: intro plus expandable list. Fields: `heading`, `lede`, `items` (`name`, `description`, `amount`), and either `icons` (a row of emoji tiles, each `{ icon, label }`) or `image` and `imageLabel` for a photo.
 
 `COURSE_DATA.resources` lists the documents behind the document icon in the header: each has a `title`, a `type` (`'pdf'` or `'pptx'`), a `url` and an optional `description`. An entry with an empty `url` shows as "Coming soon". Keep the files in the `resources/` folder (see its README) and add one entry per file.
 

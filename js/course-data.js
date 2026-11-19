@@ -107,7 +107,13 @@ window.COURSE_DATA = {
           title: 'Core ingredients',
           duration: 30,
           template: 'accordion',
-          imageLabel: 'photo: flour, eggs, milk, butter and baking powder',
+          icons: [
+            { icon: '🌾', label: 'Flour' },
+            { icon: '🧂', label: 'Baking powder' },
+            { icon: '🥚', label: 'Eggs' },
+            { icon: '🥛', label: 'Milk' },
+            { icon: '🧈', label: 'Butter' }
+          ],
           heading: 'Six ingredients do the work',
           lede: 'Open each ingredient to see what it does and how much you need.',
           items: [
