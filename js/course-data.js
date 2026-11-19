@@ -27,12 +27,12 @@ window.COURSE_DATA = {
           template: 'title',
           eyebrow: 'Hello and welcome to...',
           lede: "In this short course you'll learn how to mix, cook, and serve crisp, golden waffles at home.",
-          meta: '12 pages · 4 modules · no experience needed',
+          meta: '11 pages · 4 modules · no experience needed',
           image: 'images/plated-waffles.jpg',
           imageLabel: 'photo: plated waffles with strawberries and grapes on a red placemat',
           narration: [
             'Hello and welcome to Waffles 101.',
-            "Over the next twelve pages you'll learn everything you need to make great waffles at home.",
+            "Over the next eleven pages you'll learn everything you need to make great waffles at home.",
             'Press Start the course when you are ready.'
           ]
         },
@@ -177,20 +177,6 @@ window.COURSE_DATA = {
     {
       title: 'Cooking',
       pages: [
-        {
-          title: 'Heating and greasing',
-          duration: 22,
-          template: 'content',
-          imageLabel: 'photo: brushing oil onto a hot waffle iron',
-          heading: 'Start with a hot iron',
-          body: 'A fully heated iron sets the outside fast so the waffle crisps.',
-          points: ['Wait for the ready light', 'Brush or spray a thin layer of oil', 'Re-grease every two or three waffles'],
-          narration: [
-            'Always start with a fully heated iron.',
-            'Brush on a thin layer of oil so the waffle releases cleanly.',
-            'Add a little more oil every few waffles.'
-          ]
-        },
         {
           title: 'Pouring the right amount',
           duration: 24,

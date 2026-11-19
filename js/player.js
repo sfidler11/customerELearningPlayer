@@ -925,7 +925,7 @@
     '</div>';
   };
 
-  // Page 12: the finished screen once every page is complete, a progress note until then.
+  // The last page: the finished screen once every page is complete, a progress note until then.
   CoursePlayer.prototype.courseDone = function () {
     return this.state.completed.size === this.pages.length;
   };

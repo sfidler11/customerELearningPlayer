@@ -36,7 +36,7 @@ new CoursePlayer(element, window.COURSE_DATA, {
   menuOpen: false,
   captionsOn: false,
   showToast: false,   // preview the "Section Completed" toast
-  initialPage: 1,     // 1-12
+  initialPage: 1,     // 1-11
   initialTime: 0,
   height: null,       // e.g. 720 or '80vh'; defaults to filling the container
   persist: true,      // save progress to localStorage
