@@ -81,9 +81,10 @@
     try { store.setItem(key, value); } catch (e) { /* storage unavailable */ }
   }
 
-  function imageSlot(src, label) {
+  // pos (optional) is a CSS object-position such as 'center 70%' for choosing which part of a photo stays in view.
+  function imageSlot(src, label, pos) {
     return '<div class="cp-img">' +
-      (src ? '<img src="' + esc(src) + '" alt="' + esc(label) + '">' : '<span class="cp-img__label">' + esc(label) + '</span>') +
+      (src ? '<img src="' + esc(src) + '" alt="' + esc(label) + '"' + (pos ? ' style="object-position:' + esc(pos) + '"' : '') + '>' : '<span class="cp-img__label">' + esc(label) + '</span>') +
       '</div>';
   }
 
@@ -890,7 +891,7 @@
       var isOpen = i === open;
       var id = 'cp-tab-' + n + '-' + i;
       return '<div class="cp-tabpanel' + (isOpen ? ' is-open' : '') + '" id="' + id + '-panel" role="tabpanel" aria-labelledby="' + id + '"><div><div class="cp-tabpanel__inner">' +
-        imageSlot(it.image, it.imageLabel) +
+        imageSlot(it.image, it.imageLabel, it.imagePosition) +
         '<div class="cp-tabpanel__text">' +
           '<h3>' + esc(it.name) + '</h3>' +
           '<p>' + esc(it.description) + '</p>' +

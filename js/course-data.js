@@ -56,14 +56,18 @@ window.COURSE_DATA = {
               icon: '🥣',
               description: 'You need two. Mix the dry ingredients in one and the wet ingredients in the other, then combine them.',
               tip: 'A large bowl for the batter helps you fold gently.',
-              imageLabel: 'photo: two mixing bowls, one with flour and one with eggs and milk'
+              image: 'images/mixing-bowl.jpg',
+              imagePosition: 'center 72%',
+              imageLabel: 'photo: wooden spoon resting in a steel mixing bowl of batter'
             },
             {
               name: 'Whisk and spatula',
               icon: '🥄',
               description: 'Use the whisk to break up lumps in each bowl. Use a flexible spatula to fold the wet mix into the dry mix without overmixing.',
               tip: 'Stop folding as soon as the dry flour disappears.',
-              imageLabel: 'photo: whisk and spatula resting on a bowl'
+              image: 'images/whisk-spatula.jpg',
+              imagePosition: 'center 22%',
+              imageLabel: 'photo: a whisk, slotted spatula and spoons in a white jar'
             },
             {
               name: 'Ladle or measuring cup',
