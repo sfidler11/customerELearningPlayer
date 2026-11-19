@@ -133,6 +133,7 @@
       visited: new Set(saved ? saved.visited : []),
       completed: new Set(saved ? saved.completed : []),
       openItem: 0,
+      ironSeen: new Set(),
       mode: 'desktop',
       short: false,
       exited: false
@@ -306,6 +307,9 @@
         case 'close-course': self.closeCourse(); break;
         case 'resources': self.openResources(); break;
         case 'resources-close': self.closeExitDialog(); break;
+        case 'iron-open': self.openIron(); break;
+        case 'iron-part': self.ironPart(target.getAttribute('data-part')); break;
+        case 'iron-switch': self.ironSwitch(); break;
         case 'resume': self.resume(); break;
       }
     });
@@ -592,10 +596,12 @@
   };
 
   CoursePlayer.prototype.closeExitDialog = function () {
+    clearTimeout(this.ironTimer);
     this.dialogOpen = false;
     this.slots.overlay.removeEventListener('keydown', this.trap);
     this.slots.overlay.innerHTML = '';
     this.setInert(false);
+    this.updateIronCard();
     if (this.lastFocus && this.lastFocus.focus) this.lastFocus.focus();
   };
 
@@ -840,6 +846,7 @@
     if (d.template === 'title') region.innerHTML = this.tplTitle(d);
     else if (d.template === 'accordion') region.innerHTML = this.tplAccordion(d, n);
     else if (d.template === 'tabs') region.innerHTML = this.tplTabs(d, n);
+    else if (d.template === 'iron') region.innerHTML = this.tplIron(d, n);
     else if (d.template === 'slider') region.innerHTML = this.tplSlider(d, n);
     else if (d.template === 'completion') region.innerHTML = this.tplCompletion(d);
     else region.innerHTML = this.tplContent(d, n);
@@ -856,6 +863,7 @@
     void bar.offsetWidth;
     bar.classList.remove('cp-no-anim');
 
+    this.updateIronCard();
     this.fitCompletion();
     this.fitPage();
     this.renderCaptionText();
@@ -976,6 +984,190 @@
       '</div>' +
       '<div class="cp-hs-row">' + secs + '</div>' +
     '</div>';
+  };
+
+
+  // ---------- Waffle iron explorer (modal with clickable parts) ----------
+  var IRON_PARTS = ['handle', 'top', 'bottom', 'light', 'switch'];
+  // Pin positions as a percentage of the 400 x 300 drawing.
+  var IRON_PINS = { handle: [50, 6], top: [50, 27], bottom: [50, 60], light: [27.5, 68.5] };
+
+  function ironSvg() {
+    return '<svg class="cp-iron__svg" viewBox="0 0 400 300" role="img" aria-label="Drawing of an open waffle iron" focusable="false">' +
+      '<defs>' +
+        '<pattern id="cp-grid" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="#9aa0a8"/><rect x="2" y="2" width="10" height="10" rx="2" fill="#5d636b"/></pattern>' +
+        '<linearGradient id="cp-body" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b3f45"/><stop offset="1" stop-color="#23262a"/></linearGradient>' +
+      '</defs>' +
+      '<ellipse cx="200" cy="278" rx="170" ry="9" fill="#000" opacity=".12"/>' +
+      // lid, open and tilted back
+      '<path d="M96 30 H304 Q312 30 314 38 L332 118 H68 L86 38 Q88 30 96 30Z" fill="url(#cp-body)"/>' +
+      '<path d="M108 42 H292 L310 110 H90Z" fill="url(#cp-grid)"/>' +
+      '<path class="cp-iron__glow cp-iron__glow--top" d="M108 42 H292 L310 110 H90Z" fill="#ff7a1a"/>' +
+      // handle
+      '<rect x="146" y="12" width="108" height="14" rx="7" fill="#c9702a"/><rect x="156" y="24" width="8" height="8" fill="#7d4318"/><rect x="236" y="24" width="8" height="8" fill="#7d4318"/>' +
+      // base
+      '<rect x="28" y="122" width="344" height="132" rx="22" fill="url(#cp-body)"/>' +
+      '<path d="M58 140 H342 L356 214 H44Z" fill="url(#cp-grid)"/>' +
+      '<path class="cp-iron__glow cp-iron__glow--bottom" d="M58 140 H342 L356 214 H44Z" fill="#ff7a1a"/>' +
+      '<rect x="44" y="222" width="312" height="2" fill="#000" opacity=".25"/>' +
+      // steam
+      '<g class="cp-iron__steam" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity="0">' +
+        '<path class="cp-steam cp-steam--1" d="M150 120 q-10 -16 0 -30 q10 -14 0 -28"/>' +
+        '<path class="cp-steam cp-steam--2" d="M200 120 q-10 -16 0 -30 q10 -14 0 -28"/>' +
+        '<path class="cp-steam cp-steam--3" d="M250 120 q-10 -16 0 -30 q10 -14 0 -28"/>' +
+      '</g>' +
+      // ready light
+      '<circle class="cp-iron__bulb" cx="110" cy="238" r="9" fill="#e03b2e"/>' +
+    '</svg>';
+  }
+
+  CoursePlayer.prototype.tplIron = function (d, n) {
+    var total = IRON_PARTS.length;
+    return '<div class="cp-slide cp-slide--iron">' +
+      '<div class="cp-iron-card">' +
+        '<div class="cp-iron-card__art">' + ironSvg() + '</div>' +
+        '<button type="button" class="cp-btn cp-btn--primary cp-iron-card__btn" data-act="iron-open">' + esc(d.exploreLabel || 'Explore the waffle iron') + '</button>' +
+        '<p class="cp-iron-card__count" data-role="iron-count"></p>' +
+      '</div>' +
+      '<div class="cp-slide__text">' +
+        '<p class="cp-eyebrow">Page ' + n + ' · ' + esc(d.title) + '</p>' +
+        '<h2 class="cp-h2">' + esc(d.heading) + '</h2>' +
+        '<p class="cp-body-text">' + esc(d.body) + '</p>' +
+        '<ul class="cp-points">' + (d.points || []).map(function (pt) { return '<li>' + esc(pt) + '</li>'; }).join('') + '</ul>' +
+      '</div>' +
+    '</div>';
+  };
+
+  CoursePlayer.prototype.ironData = function () { return this.page().data; };
+
+  // Keeps the "x of 5 explored" line on the page in step with the modal.
+  CoursePlayer.prototype.updateIronCard = function () {
+    var el = this.slots.region && this.slots.region.querySelector('[data-role=iron-count]');
+    if (!el) return;
+    var seen = this.state.ironSeen.size, total = IRON_PARTS.length;
+    el.textContent = seen === total ? '✓ You explored every part' : seen + ' of ' + total + ' parts explored';
+    el.classList.toggle('is-done', seen === total);
+  };
+
+  CoursePlayer.prototype.openIron = function () {
+    this.pause();
+    this.dialogOpen = true;
+    this.lastFocus = document.activeElement;
+    var d = this.ironData();
+    var parts = d.parts || {};
+    var self = this;
+    var check = '<span class="cp-iron__check" aria-hidden="true">' + ICON.check + '</span>';
+    var pins = Object.keys(IRON_PINS).map(function (id) {
+      var pos = IRON_PINS[id];
+      var idx = IRON_PARTS.indexOf(id) + 1;
+      return '<button type="button" class="cp-pin" data-act="iron-part" data-part="' + id + '" style="left:' + pos[0] + '%;top:' + pos[1] + '%" aria-label="' + esc((parts[id] || {}).name || id) + '">' +
+        '<span class="cp-pin__num" aria-hidden="true">' + idx + '</span>' + check + '</button>';
+    }).join('');
+    var list = IRON_PARTS.map(function (id, i) {
+      return '<li><button type="button" class="cp-iron-row" data-act="iron-part" data-part="' + id + '">' +
+        '<span class="cp-iron-row__mark" aria-hidden="true"><span class="cp-iron-row__num">' + (i + 1) + '</span>' + ICON.check + '</span>' +
+        '<span class="cp-iron-row__name">' + esc((parts[id] || {}).name || id) + '</span>' +
+        '<span class="cp-sr cp-iron-row__state"></span></button></li>';
+    }).join('');
+    this.slots.overlay.innerHTML =
+      '<div class="cp-dialog-layer">' +
+        '<div class="cp-dialog cp-dialog--iron" role="dialog" aria-modal="true" aria-labelledby="cp-iron-title">' +
+          '<div class="cp-dialog__head"><h2 id="cp-iron-title">' + esc(d.modalTitle || 'Explore the waffle iron') + '</h2>' +
+            '<button type="button" class="cp-btn cp-btn--ghost" data-act="resources-close" aria-label="Close" title="Close">' + ICON.close + '</button></div>' +
+          '<div class="cp-iron">' +
+            '<div class="cp-iron__stage" data-role="iron-stage">' +
+              ironSvg() + pins +
+              '<button type="button" class="cp-switch" role="switch" aria-checked="false" data-act="iron-switch" aria-label="Power switch">' +
+                '<span class="cp-switch__track"><span class="cp-switch__knob"></span></span>' +
+                '<span class="cp-switch__text" data-role="switch-text">OFF</span>' + check +
+              '</button>' +
+            '</div>' +
+            '<div class="cp-iron__side">' +
+              '<div class="cp-iron__info" data-role="iron-info" aria-live="polite">' +
+                '<p class="cp-iron__hint">Select a numbered point on the waffle iron, or a part in the list, to learn why it matters.</p>' +
+              '</div>' +
+              '<ul class="cp-iron__list">' + list + '</ul>' +
+              '<p class="cp-iron__progress" data-role="iron-progress"></p>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    this.setInert(true);
+    this.trap = function (e) {
+      if (e.key !== 'Tab') return;
+      var els = self.slots.overlay.querySelectorAll('button');
+      var first = els[0], last = els[els.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+    this.slots.overlay.addEventListener('keydown', this.trap);
+    this.ironRefresh();
+    this.slots.overlay.querySelector('[data-act=resources-close]').focus();
+  };
+
+  // Redraws the check marks, list and progress from state.ironSeen.
+  CoursePlayer.prototype.ironRefresh = function () {
+    var ov = this.slots.overlay, seen = this.state.ironSeen;
+    ov.querySelectorAll('[data-part]').forEach(function (b) {
+      var done = seen.has(b.getAttribute('data-part'));
+      b.classList.toggle('is-seen', done);
+      var st = b.querySelector('.cp-iron-row__state');
+      if (st) st.textContent = done ? ' (explored)' : '';
+    });
+    var sw = ov.querySelector('.cp-switch');
+    if (sw) sw.classList.toggle('is-seen', seen.has('switch'));
+    var total = IRON_PARTS.length;
+    var pr = ov.querySelector('[data-role=iron-progress]');
+    if (pr) {
+      pr.textContent = seen.size === total ? '✓ You explored every part. Close this window to continue.' : seen.size + ' of ' + total + ' parts explored';
+      pr.classList.toggle('is-done', seen.size === total);
+    }
+  };
+
+  CoursePlayer.prototype.ironShow = function (id) {
+    var part = (this.ironData().parts || {})[id] || { name: id, text: '' };
+    var info = this.slots.overlay.querySelector('[data-role=iron-info]');
+    info.innerHTML = '<h3>' + esc(part.name) + '</h3><p>' + esc(part.text) + '</p>' +
+      (id === 'switch' ? '<p class="cp-iron__tip">' + esc(part.tip || '') + '</p>' : '');
+    this.slots.overlay.querySelectorAll('.cp-pin, .cp-iron-row, .cp-switch').forEach(function (b) {
+      var bid = b.getAttribute('data-part') || (b.classList.contains('cp-switch') ? 'switch' : '');
+      b.classList.toggle('is-active', bid === id);
+    });
+  };
+
+  CoursePlayer.prototype.ironPart = function (id) {
+    if (id === 'switch') {
+      this.ironShow('switch');
+      this.state.ironSeen.add('switch');
+      this.ironRefresh();
+      return;
+    }
+    this.state.ironSeen.add(id);
+    this.ironShow(id);
+    this.ironRefresh();
+  };
+
+  // The on/off switch: slides, lights the plates, turns the light from red to green and lets steam rise.
+  CoursePlayer.prototype.ironSwitch = function () {
+    var stage = this.slots.overlay.querySelector('[data-role=iron-stage]');
+    var sw = stage.querySelector('.cp-switch');
+    var on = !stage.classList.contains('is-on');
+    var self = this;
+    clearTimeout(this.ironTimer);
+    stage.classList.toggle('is-on', on);
+    stage.classList.remove('is-ready');
+    sw.setAttribute('aria-checked', String(on));
+    stage.querySelector('[data-role=switch-text]').textContent = on ? 'ON' : 'OFF';
+    if (on) this.ironTimer = setTimeout(function () { stage.classList.add('is-ready'); }, 1600);
+    this.ironPart('switch');
+    if (on) {
+      var d = this.ironData();
+      var info = this.slots.overlay.querySelector('[data-role=iron-info]');
+      var extra = document.createElement('p');
+      extra.className = 'cp-iron__tip';
+      extra.textContent = (d.parts && d.parts.light && d.parts.light.heating) || 'The red light means the iron is heating up.';
+      info.appendChild(extra);
+    }
   };
 
   CoursePlayer.prototype.tplTabs = function (d, n) {

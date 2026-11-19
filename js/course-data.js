@@ -4,7 +4,7 @@
  * Each page has:
  *   title      Menu and eyebrow title
  *   duration   Narration length in seconds (the demo simulates audio with a timer)
- *   template   'title' | 'content' | 'accordion' | 'tabs' | 'slider' | 'completion'
+ *   template   'title' | 'content' | 'accordion' | 'tabs' | 'slider' | 'iron' | 'completion'
  *   narration  Sentences shown in the captions panel
  * plus the fields its template needs (see README).
  */
@@ -87,11 +87,22 @@ window.COURSE_DATA = {
         {
           title: 'How a waffle iron works',
           duration: 26,
-          template: 'content',
-          imageLabel: 'diagram: open waffle iron showing heated grid plates',
+          template: 'iron',
           heading: 'Hot plates, deep pockets',
           body: 'Two heated grids cook the batter from both sides at once.',
           points: ['The grid makes pockets that crisp up', 'Steam escapes from the sides as it cooks', 'Most irons have a ready light'],
+          exploreLabel: 'Explore the waffle iron',
+          modalTitle: 'Explore the waffle iron',
+          // Parts: handle, top, bottom, light, switch. Each has a name and a short explanation.
+          parts: {
+            handle: { name: 'Handle', text: 'Lifts the lid and latches it shut. Always use the handle, because the metal around the plates gets very hot.' },
+            top: { name: 'Top grid plate', text: 'Cooks the upper side of the waffle. Its raised squares press down into the batter to make the deep pockets and crisp edges.' },
+            bottom: { name: 'Bottom grid plate', text: 'Holds the batter and browns the underside. Grease it lightly so the waffle lifts out cleanly.' },
+            light: { name: 'Ready light', text: 'Tells you when the plates are hot enough. Pour the batter only after it turns green, so the outside crisps right away.',
+              heating: 'The light is red while the iron heats up. When it turns green, the iron is ready for batter.' },
+            switch: { name: 'Power switch', text: 'Turns the heat on and off. Switch it on first and let the iron preheat before you pour any batter.',
+              tip: 'Try it: flip the switch on the iron and watch the plates heat up.' }
+          },
           narration: [
             'A waffle iron is two heated grids that close around the batter.',
             'The grid shape creates deep pockets with lots of crisp edges.',
