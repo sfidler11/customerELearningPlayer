@@ -4,7 +4,7 @@
  * Each page has:
  *   title      Menu and eyebrow title
  *   duration   Narration length in seconds (the demo simulates audio with a timer)
- *   template   'title' | 'content' | 'accordion' | 'tabs' | 'slider' | 'iron' | 'rest' | 'completion'
+ *   template   'title' | 'content' | 'accordion' | 'tabs' | 'slider' | 'iron' | 'rest' | 'bake' | 'completion'
  *   narration  Sentences shown in the captions panel
  * plus the fields its template needs (see README).
  */
@@ -214,11 +214,13 @@ window.COURSE_DATA = {
         {
           title: 'Keeping waffles crisp',
           duration: 22,
-          template: 'content',
-          imageLabel: 'photo: waffles on a wire rack in a low oven',
+          template: 'bake',
           heading: 'Keep them off the plate',
-          body: 'Stacking traps steam and softens the crust.',
-          points: ['Set waffles on a wire rack', 'Hold them in a 200°F oven', "Don't stack until you serve"],
+          body: 'Stacking traps steam and softens the crust. Hold finished waffles on a tray in a low oven while you cook the rest.',
+          targetTemp: 200,
+          waffleCount: 5,
+          steps: ['Turn the oven on to 200\u00B0F', 'Move 5 waffles from the waffle iron to the tray', 'Slide the tray into the oven'],
+          doneText: 'Nicely done! The waffles stay warm and crisp until you are ready to serve.',
           narration: [
             'Fresh waffles turn soft if you stack them.',
             'Set them on a wire rack in a low oven while you finish the batch.',

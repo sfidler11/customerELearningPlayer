@@ -136,6 +136,7 @@
       openItem: 0,
       ironSeen: new Set(),
       rest: { left: null, running: false, end: 0 },
+      bake: { temp: 0, moved: 0, inOven: false, fresh: false },
       mode: 'desktop',
       short: false,
       exited: false
@@ -311,6 +312,9 @@
         case 'resources-close': self.closeExitDialog(); break;
         case 'iron-open': self.openIron(); break;
         case 'tray': self.toggleTray(); break;
+        case 'bake-waffle': if (!self.bakeDragged) self.bakeMove(); break;
+        case 'bake-tray': if (!self.bakeDragged) self.bakeInsert(); break;
+        case 'bake-reset': self.bakeReset(); break;
         case 'rest-start': self.restStart(); break;
         case 'rest-reset': self.restReset(); break;
         case 'iron-part': self.ironPart(target.getAttribute('data-part')); break;
@@ -852,6 +856,7 @@
     if (d.template === 'title') region.innerHTML = this.tplTitle(d);
     else if (d.template === 'accordion') region.innerHTML = this.tplAccordion(d, n);
     else if (d.template === 'tabs') region.innerHTML = this.tplTabs(d, n);
+    else if (d.template === 'bake') { region.innerHTML = this.tplBake(d, n); this.bakeBind(); }
     else if (d.template === 'rest') region.innerHTML = this.tplRest(d, n);
     else if (d.template === 'iron') region.innerHTML = this.tplIron(d, n);
     else if (d.template === 'slider') region.innerHTML = this.tplSlider(d, n);
@@ -872,6 +877,7 @@
 
     this.updateIronCard();
     this.restPaint();
+    if (d.template === 'bake') this.bakeRender();
     this.fitCompletion();
     this.fitPage();
     this.renderCaptionText();
@@ -1320,6 +1326,181 @@
     this.restStop();
     this.state.rest.left = this.state.rest.total;
     this.restPaint();
+  };
+
+
+  // ---------- Keep-warm activity: set the oven, move waffles to a tray, slide the tray in ----------
+  CoursePlayer.prototype.bakeCfg = function () {
+    var d = this.page().data;
+    return { temp: d.targetTemp || 200, count: d.waffleCount || 5 };
+  };
+
+  CoursePlayer.prototype.tplBake = function (d, n) {
+    var steps = (d.steps || []).map(function (t, i) {
+      return '<li class="cp-bk-step" data-step="' + i + '"><span class="cp-bk-step__mark" aria-hidden="true"><span>' + (i + 1) + '</span>' + ICON.check + '</span>' +
+        '<span class="cp-bk-step__text">' + esc(t) + '</span></li>';
+    }).join('');
+    return '<div class="cp-bake">' +
+      '<div class="cp-bake__intro">' +
+        '<p class="cp-eyebrow">Page ' + n + ' · ' + esc(d.title) + '</p>' +
+        '<h2 class="cp-h2">' + esc(d.heading) + '</h2>' +
+        '<p class="cp-body-text">' + esc(d.body) + '</p>' +
+        '<ol class="cp-bk-steps">' + steps + '</ol>' +
+        '<p class="cp-bk-msg" data-role="bake-msg" aria-live="polite"></p>' +
+      '</div>' +
+      '<div class="cp-bake__scene" data-role="bake-scene"></div>' +
+    '</div>';
+  };
+
+  CoursePlayer.prototype.bakeRender = function () {
+    var b = this.state.bake, cfg = this.bakeCfg(), self = this;
+    var scene = this.slots.region.querySelector('[data-role=bake-scene]');
+    if (!scene) return;
+    var oldDial = scene.querySelector('.cp-bk-dial');
+    var atTemp = b.temp === cfg.temp;
+    var ready = b.moved >= cfg.count;
+    var i, html = '';
+    // Waffle iron
+    var ironSlots = '';
+    for (i = 0; i < cfg.count; i++) {
+      var onIron = i >= b.moved;
+      ironSlots += onIron
+        ? '<button type="button" class="cp-bk-waffle" data-act="bake-waffle" aria-label="Move a waffle to the tray (' + (cfg.count - b.moved) + ' left on the iron)"></button>'
+        : '<span class="cp-bk-slot" aria-hidden="true"></span>';
+    }
+    // The first waffle still on the iron is the one that moves, so only that one is draggable.
+    var traySlots = '';
+    for (i = 0; i < cfg.count; i++) {
+      traySlots += i < b.moved ? '<span class="cp-bk-waffle cp-bk-waffle--placed' + (b.fresh && i === b.moved - 1 ? ' is-new' : '') + '" aria-hidden="true"></span>' : '<span class="cp-bk-slot" aria-hidden="true"></span>';
+    }
+    html += '<div class="cp-bk-zone cp-bk-zone--iron"><h3>Waffle iron</h3><div class="cp-bk-iron">' + ironSlots + '</div></div>';
+    html += '<div class="cp-bk-zone cp-bk-zone--tray" data-drop="tray"><h3>Tray</h3>' +
+      (b.inOven ? '<div class="cp-bk-tray cp-bk-tray--gone" aria-hidden="true"></div><p class="cp-bk-note">The tray is in the oven.</p>' :
+      '<div class="cp-bk-tray' + (ready ? ' is-ready' : '') + '"' + (ready ? ' data-drag="tray"' : '') + '><div class="cp-bk-tray__slots">' + traySlots + '</div></div>' +
+      '<p class="cp-bk-note">' + b.moved + ' of ' + cfg.count + ' waffles on the tray</p>' +
+      (ready ? '<button type="button" class="cp-btn cp-btn--primary cp-bk-go" data-act="bake-tray">Slide tray into oven</button>' : '')) +
+      '</div>';
+    var temp = b.temp === 0 ? 'Off' : b.temp + '°F';
+    html += '<div class="cp-bk-zone cp-bk-zone--oven" data-drop="oven"><h3>Oven</h3>' +
+      '<div class="cp-bk-oven' + (b.temp ? ' is-on' : '') + (b.inOven ? ' has-tray' : '') + '" style="--heat:' + (b.temp / 450).toFixed(2) + '">' +
+        '<div class="cp-bk-oven__door"><div class="cp-bk-oven__window">' +
+          (b.inOven ? '<div class="cp-bk-oven__tray"><span></span><span></span><span></span><span></span><span></span></div>' : '') +
+        '</div><div class="cp-bk-oven__handle"></div></div>' +
+        '<div class="cp-bk-oven__panel"><span class="cp-bk-oven__light"></span><output class="cp-bk-oven__temp" for="cp-bk-range">' + temp + '</output></div>' +
+      '</div>' +
+      '<label class="cp-bk-dial" for="cp-bk-range"><span>Oven temperature</span>' +
+        '<input id="cp-bk-range" type="range" min="0" max="450" step="25" value="' + b.temp + '"' + (b.inOven ? ' disabled' : '') + ' aria-valuetext="' + temp + '"></label>' +
+    '</div>';
+    html += '<button type="button" class="cp-btn cp-btn--outline cp-bk-reset" data-act="bake-reset">Start over</button>';
+    scene.innerHTML = html;
+    // Keep the same slider element so it can be dragged smoothly while the rest of the scene redraws.
+    var newDial = scene.querySelector('.cp-bk-dial');
+    if (oldDial && newDial) {
+      var inp = oldDial.querySelector('input');
+      inp.disabled = b.inOven; inp.value = b.temp; inp.setAttribute('aria-valuetext', temp);
+      newDial.parentNode.replaceChild(oldDial, newDial);
+      if (this._bakeFocus === inp) inp.focus();
+    }
+    // Steps and feedback
+    var done = [atTemp || b.inOven, ready, b.inOven];
+    this.slots.region.querySelectorAll('.cp-bk-step').forEach(function (el, k) {
+      el.classList.toggle('is-done', !!done[k]);
+    });
+    var msg = this.slots.region.querySelector('[data-role=bake-msg]');
+    var d = this.page().data;
+    msg.className = 'cp-bk-msg' + (b.inOven ? ' is-done' : '');
+    msg.textContent = b.inOven ? (d.doneText || 'Nicely done! The waffles stay warm and crisp.')
+      : b.temp !== 0 && !atTemp ? 'Keep-warm temperature is ' + cfg.temp + '°F. Adjust the dial.'
+      : '';
+    this.bakeBind();
+  };
+
+  CoursePlayer.prototype.bakeSay = function (text) {
+    var msg = this.slots.region.querySelector('[data-role=bake-msg]');
+    if (msg) { msg.className = 'cp-bk-msg'; msg.textContent = text; }
+  };
+
+  CoursePlayer.prototype.bakeMove = function () {
+    var b = this.state.bake, cfg = this.bakeCfg();
+    if (b.inOven || b.moved >= cfg.count) return;
+    b.moved++; b.fresh = true;
+    this.bakeRender();
+    var again = this.slots.region.querySelector('.cp-bk-waffle:not(.cp-bk-waffle--placed)') || this.slots.region.querySelector('[data-act=bake-tray]');
+    if (again) again.focus();
+  };
+
+  CoursePlayer.prototype.bakeInsert = function () {
+    var b = this.state.bake, cfg = this.bakeCfg();
+    if (b.inOven || b.moved < cfg.count) return;
+    if (b.temp !== cfg.temp) {
+      this.bakeSay(b.temp === 0 ? 'Turn the oven on to ' + cfg.temp + '°F first.' : 'The oven needs to be at ' + cfg.temp + '°F first.');
+      return;
+    }
+    b.inOven = true; b.fresh = false;
+    this.bakeRender();
+  };
+
+  CoursePlayer.prototype.bakeReset = function () {
+    this.state.bake = { temp: 0, moved: 0, inOven: false, fresh: false };
+    this.bakeRender();
+  };
+
+  // Wires up the dial and the drag gestures after every redraw. Taps and the keyboard use the buttons.
+  CoursePlayer.prototype.bakeBind = function () {
+    var self = this, region = this.slots.region;
+    var range = region.querySelector('#cp-bk-range');
+    if (range && !range._bound) {
+      range._bound = true;
+      range.addEventListener('blur', function () { setTimeout(function () { if (document.activeElement !== range) self._bakeFocus = null; }, 0); });
+      range.addEventListener('input', function () {
+        self._bakeFocus = range;
+        self.state.bake.temp = Number(range.value);
+        self.bakeRender();
+      });
+    }
+    var firstWaffle = region.querySelector('.cp-bk-waffle[data-act=bake-waffle]');
+    if (firstWaffle) this.bakeDrag(firstWaffle, '[data-drop=tray]', function () { self.bakeMove(); });
+    var tray = region.querySelector('[data-drag=tray]');
+    if (tray) this.bakeDrag(tray, '[data-drop=oven]', function () { self.bakeInsert(); });
+  };
+
+  // Pointer dragging: the element follows the pointer and, if released over the target, runs onDrop.
+  CoursePlayer.prototype.bakeDrag = function (el, targetSel, onDrop) {
+    var self = this, start = null;
+    el.style.touchAction = 'none';
+    el.addEventListener('pointerdown', function (e) {
+      if (e.button !== 0) return;
+      var r = el.getBoundingClientRect();
+      start = { x: e.clientX, y: e.clientY, scale: el.offsetWidth ? r.width / el.offsetWidth : 1, moved: false };
+      el.setPointerCapture(e.pointerId);
+    });
+    el.addEventListener('pointermove', function (e) {
+      if (!start) return;
+      var dx = e.clientX - start.x, dy = e.clientY - start.y;
+      if (!start.moved && Math.abs(dx) + Math.abs(dy) < 6) return;
+      start.moved = true;
+      el.classList.add('is-dragging');
+      el.style.transform = 'translate(' + (dx / start.scale) + 'px,' + (dy / start.scale) + 'px)';
+      var t = self.slots.region.querySelector(targetSel);
+      if (t) { var tr = t.getBoundingClientRect(); t.classList.toggle('is-over', e.clientX >= tr.left && e.clientX <= tr.right && e.clientY >= tr.top && e.clientY <= tr.bottom); }
+    });
+    var end = function (e) {
+      if (!start) return;
+      var moved = start.moved; start = null;
+      var t = self.slots.region.querySelector(targetSel);
+      var over = false;
+      if (t) { var tr = t.getBoundingClientRect(); over = e.clientX >= tr.left && e.clientX <= tr.right && e.clientY >= tr.top && e.clientY <= tr.bottom; t.classList.remove('is-over'); }
+      el.classList.remove('is-dragging');
+      el.style.transform = '';
+      if (moved) {
+        // A drag must not also count as a click.
+        self.bakeDragged = true;
+        setTimeout(function () { self.bakeDragged = false; }, 0);
+        if (over) onDrop();
+      }
+    };
+    el.addEventListener('pointerup', end);
+    el.addEventListener('pointercancel', function () { start = null; el.classList.remove('is-dragging'); el.style.transform = ''; });
   };
 
   CoursePlayer.prototype.tplTabs = function (d, n) {
