@@ -52,7 +52,7 @@ The layout mode comes from the player's own width (desktop ≥ 1024px, tablet 64
 `COURSE_DATA` has a `title`, a `storageKey` for saved progress, and `modules`, each with a `title` and `pages`. Every page has a `title`, a narration `duration` in seconds, `narration` sentences for the captions panel, and a `template`:
 
 - `title`: full-bleed title page. Fields: `eyebrow`, `lede`, `meta`, `image`, `imageLabel`.
-- `content`: image and text slide. Fields: `heading`, `body`, `points`, `image`, `imageLabel`.
+- `content`: image and text slide. Fields: `heading`, `body`, `points`, `image`, `imageLabel`, optional `imagePosition`.
 - `tabs`: intro plus a row of tabs. Selecting a tab opens its panel, and selecting it again closes it. Fields: `heading`, `lede`, `items` (`name`, `description`, `tip`, `image`, `imageLabel`, and optional `imagePosition`, a CSS object-position such as `center 70%` to choose which part of the photo stays in view).
 - `completion`: the last page. Shows `heading` and `thanks` with confetti once every page is complete, and `pendingHeading` and `pendingBody` until then. Confetti is skipped when the visitor prefers reduced motion.
 - `slider`: horizontal accordion. Sections sit side by side as colored title strips, and selecting one slides it open to show its text. Fields: `heading`, `lede`, `items` (`name`, `kind` for a small label such as Sweet, `icon`, `description`, `tip`, and `color`: `amber`, `berry`, `green` or `blue`).

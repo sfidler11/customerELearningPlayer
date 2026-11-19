@@ -870,7 +870,7 @@
 
   CoursePlayer.prototype.tplContent = function (d, n) {
     return '<div class="cp-slide">' +
-      imageSlot(d.image, d.imageLabel) +
+      imageSlot(d.image, d.imageLabel, d.imagePosition) +
       '<div class="cp-slide__text">' +
         '<p class="cp-eyebrow">Page ' + n + ' · ' + esc(d.title) + '</p>' +
         '<h2 class="cp-h2">' + esc(d.heading) + '</h2>' +
