@@ -28,8 +28,8 @@ window.COURSE_DATA = {
           eyebrow: 'Hello and welcome to...',
           lede: "In this short course you'll learn how to mix, cook, and serve crisp, golden waffles at home.",
           meta: '12 pages · 4 modules · no experience needed',
-          image: '',
-          imageLabel: 'photo: stack of golden waffles with butter and syrup',
+          image: 'images/plated-waffles.jpg',
+          imageLabel: 'photo: plated waffles with strawberries and grapes on a red placemat',
           narration: [
             'Hello and welcome to Waffles 101.',
             "Over the next twelve pages you'll learn everything you need to make great waffles at home.",
