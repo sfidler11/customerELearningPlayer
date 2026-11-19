@@ -1399,9 +1399,17 @@
       var inp = oldDial.querySelector('input');
       inp.disabled = b.inOven; inp.value = b.temp; inp.setAttribute('aria-valuetext', temp);
       newDial.parentNode.replaceChild(oldDial, newDial);
-      if (this._bakeFocus === inp) inp.focus();
     }
-    // Steps and feedback
+    this.bakeStatus();
+    this.bakeBind();
+  };
+
+
+  // Step check marks and the feedback line, from state.bake.
+  CoursePlayer.prototype.bakeStatus = function () {
+    var b = this.state.bake, cfg = this.bakeCfg();
+    var atTemp = b.temp === cfg.temp;
+    var ready = b.moved >= cfg.count;
     var done = [atTemp || b.inOven, ready, b.inOven];
     this.slots.region.querySelectorAll('.cp-bk-step').forEach(function (el, k) {
       el.classList.toggle('is-done', !!done[k]);
@@ -1410,9 +1418,23 @@
     var d = this.page().data;
     msg.className = 'cp-bk-msg' + (b.inOven ? ' is-done' : '');
     msg.textContent = b.inOven ? (d.doneText || 'Nicely done! The waffles stay warm and crisp.')
-      : b.temp !== 0 && !atTemp ? 'Keep-warm temperature is ' + cfg.temp + '°F. Adjust the dial.'
+      : b.temp !== 0 && !atTemp ? 'Keep-warm temperature is ' + cfg.temp + '\u00B0F. Adjust the dial.'
       : '';
-    this.bakeBind();
+  };
+
+  // Dragging the slider only updates the oven in place, so the slider itself is never replaced mid-drag.
+  CoursePlayer.prototype.bakeOvenUpdate = function () {
+    var b = this.state.bake, region = this.slots.region;
+    var temp = b.temp === 0 ? 'Off' : b.temp + '\u00B0F';
+    var oven = region.querySelector('.cp-bk-oven');
+    if (oven) {
+      oven.classList.toggle('is-on', b.temp > 0);
+      oven.style.setProperty('--heat', (b.temp / 450).toFixed(2));
+      oven.querySelector('.cp-bk-oven__temp').textContent = temp;
+    }
+    var inp = region.querySelector('#cp-bk-range');
+    if (inp) inp.setAttribute('aria-valuetext', temp);
+    this.bakeStatus();
   };
 
   CoursePlayer.prototype.bakeSay = function (text) {
@@ -1451,11 +1473,9 @@
     var range = region.querySelector('#cp-bk-range');
     if (range && !range._bound) {
       range._bound = true;
-      range.addEventListener('blur', function () { setTimeout(function () { if (document.activeElement !== range) self._bakeFocus = null; }, 0); });
       range.addEventListener('input', function () {
-        self._bakeFocus = range;
         self.state.bake.temp = Number(range.value);
-        self.bakeRender();
+        self.bakeOvenUpdate();
       });
     }
     var firstWaffle = region.querySelector('.cp-bk-waffle[data-act=bake-waffle]');
