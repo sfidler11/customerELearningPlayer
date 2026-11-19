@@ -212,7 +212,7 @@ window.COURSE_DATA = {
       title: 'Serving',
       pages: [
         {
-          title: 'Keeping waffles crisp',
+          title: "Keeping waffles warm until they're all ready",
           duration: 22,
           template: 'bake',
           heading: 'Keep them off the plate',
