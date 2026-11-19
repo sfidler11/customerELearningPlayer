@@ -206,6 +206,7 @@
 .cp-icons { flex: 1; list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; align-content: center; gap: 12px; }
 .cp-icons__tile { flex: 0 0 calc((100% - 24px) / 3); min-height: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 14px 8px; border-radius: 12px; background: var(--brand-tint); border: 1px solid var(--brand-border); text-align: center; }
 .cp-icons__icon { font-size: 44px; line-height: 1; }
+.cp-icons__icon img { width: 48px; height: 48px; display: block; }
 .cp-icons__label { font-size: 14px; font-weight: 600; color: var(--brand-strong); line-height: 1.25; }
 .cp-acc-list { align-self: safe center; display: flex; flex-direction: column; gap: 10px; }
 .cp-acc-item { border-radius: 12px; background: var(--panel); border: 1px solid var(--line-soft); transition: background-color .25s ease, border-color .25s ease, box-shadow .25s ease; }
@@ -377,6 +378,7 @@ a.cp-res:hover { background: var(--hover); border-color: var(--brand-border); }
 .cp--phone .cp-icons, .cp--short .cp-icons { flex: none; gap: 6px; margin-top: 4px; }
 .cp--phone .cp-icons__tile, .cp--short .cp-icons__tile { flex-basis: calc((100% - 24px) / 5); min-height: 0; padding: 8px 2px; gap: 4px; }
 .cp--phone .cp-icons__icon, .cp--short .cp-icons__icon { font-size: 26px; }
+.cp--phone .cp-icons__icon img, .cp--short .cp-icons__icon img { width: 28px; height: 28px; }
 .cp--phone .cp-icons__label, .cp--short .cp-icons__label { font-size: 11px; }
 .cp--phone .cp-acc-btn { padding: 8px 12px; gap: 12px; }
 .cp--phone .cp-acc-panel p { padding-left: 56px; padding-right: 12px; }

@@ -109,7 +109,7 @@ window.COURSE_DATA = {
           template: 'accordion',
           icons: [
             { icon: '🌾', label: 'Flour' },
-            { icon: '🧂', label: 'Baking powder' },
+            { src: 'images/baking-powder.svg', label: 'Baking powder' },
             { icon: '🥚', label: 'Eggs' },
             { icon: '🥛', label: 'Milk' },
             { icon: '🧈', label: 'Butter' }

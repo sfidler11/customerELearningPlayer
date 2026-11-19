@@ -84,7 +84,7 @@
   // A grid of emoji icons with labels, used in place of a photo. icons: [{ icon, label }].
   function iconGrid(icons) {
     return '<ul class="cp-icons">' + icons.map(function (it) {
-      return '<li class="cp-icons__tile"><span class="cp-icons__icon" aria-hidden="true">' + esc(it.icon) + '</span>' +
+      return '<li class="cp-icons__tile"><span class="cp-icons__icon" aria-hidden="true">' + (it.src ? '<img src="' + esc(it.src) + '" alt="">' : esc(it.icon)) + '</span>' +
         '<span class="cp-icons__label">' + esc(it.label) + '</span></li>';
     }).join('') + '</ul>';
   }
