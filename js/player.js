@@ -342,6 +342,7 @@
       var mode = self.opts.viewport !== 'auto' ? self.opts.viewport
         : width >= DESKTOP_MIN ? 'desktop' : width >= TABLET_MIN ? 'tablet' : 'phone';
       var short = height > 0 && height < SHORT_MAX;
+      self.scheduleFit();
       if (mode === self.state.mode && short === self.state.short) return;
       self.state.mode = mode;
       self.state.short = short;
@@ -471,6 +472,14 @@
       items[k].classList.toggle('is-open', open);
       items[k].querySelector('.cp-acc-btn').setAttribute('aria-expanded', String(open));
     }
+    this.fitAfterMotion();
+  };
+
+  // Panels animate open and closed, so measure again once they settle.
+  CoursePlayer.prototype.fitAfterMotion = function () {
+    var self = this;
+    clearTimeout(this.fitTimer);
+    this.fitTimer = setTimeout(function () { self.fitPage(); }, 330);
   };
 
   // Tabs: selecting the open tab again closes it, so every panel can be collapsed.
@@ -486,6 +495,7 @@
       panels[k].classList.toggle('is-open', on);
     }
     this.slots.region.querySelector('[data-role=tabs-empty]').hidden = open !== -1;
+    this.fitAfterMotion();
   };
 
   CoursePlayer.prototype.showToast = function () {
@@ -655,6 +665,7 @@
     this.slots['exit-label'].parentNode.setAttribute('aria-label', 'Save & exit');
     this.renderMenuState();
     this.fitCompletion();
+    this.fitPage();
   };
 
   // The completion screen should never need scrolling: drop the picture first,
@@ -681,6 +692,36 @@
     done.classList.add('cp-done--tight');
     var need = region.scrollHeight;
     if (need > avail + 1) done.style.zoom = String(Math.max(0.5, avail / need));
+  };
+
+  // Every page except the title should fit the window without scrolling: when the
+  // content is taller than the region, scale it down (never below 55%) and re-check.
+  CoursePlayer.prototype.fitPage = function () {
+    var region = this.slots.region;
+    var el = region && region.firstElementChild;
+    if (!el || this.el.classList.contains('cp--title-page')) return;
+    if (el.classList.contains('cp-done') && !el.classList.contains('cp-done--pending')) return;
+    el.style.zoom = '';
+    var avail = region.clientHeight;
+    if (!avail) return;
+    var z = 1;
+    for (var i = 0; i < 4; i++) {
+      var need = region.scrollHeight;
+      if (need <= avail + 1) break;
+      z = Math.max(0.55, z * avail / need);
+      el.style.zoom = String(z);
+      if (z <= 0.55) break;
+    }
+  };
+
+  CoursePlayer.prototype.scheduleFit = function () {
+    var self = this;
+    if (this.fitRaf) return;
+    this.fitRaf = requestAnimationFrame(function () {
+      self.fitRaf = 0;
+      self.fitCompletion();
+      self.fitPage();
+    });
   };
 
   CoursePlayer.prototype.renderMenuState = function () {
@@ -792,6 +833,7 @@
     bar.classList.remove('cp-no-anim');
 
     this.fitCompletion();
+    this.fitPage();
     this.renderCaptionText();
     this.stopConfetti();
     if (d.template === 'completion' && this.courseDone()) this.startConfetti();
