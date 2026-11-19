@@ -4,7 +4,7 @@
  * Each page has:
  *   title      Menu and eyebrow title
  *   duration   Narration length in seconds (the demo simulates audio with a timer)
- *   template   'title' | 'content' | 'accordion'
+ *   template   'title' | 'content' | 'accordion' | 'tabs' | 'slider' | 'iron' | 'rest' | 'bake' | 'completion'
  *   narration  Sentences shown in the captions panel
  * plus the fields its template needs (see README).
  */
@@ -27,12 +27,12 @@ window.COURSE_DATA = {
           template: 'title',
           eyebrow: 'Hello and welcome to...',
           lede: "In this short course you'll learn how to mix, cook, and serve crisp, golden waffles at home.",
-          meta: '12 pages · 4 modules · no experience needed',
-          image: '',
-          imageLabel: 'photo: stack of golden waffles with butter and syrup',
+          meta: '11 pages · 4 modules · no experience needed',
+          image: 'images/plated-waffles.jpg',
+          imageLabel: 'photo: plated waffles with strawberries and grapes on a red placemat',
           narration: [
             'Hello and welcome to Waffles 101.',
-            "Over the next twelve pages you'll learn everything you need to make great waffles at home.",
+            "Over the next eleven pages you'll learn everything you need to make great waffles at home.",
             'Press Start the course when you are ready.'
           ]
         },
@@ -48,28 +48,34 @@ window.COURSE_DATA = {
               icon: '🧇',
               description: 'The one special tool. Two heated grids close around the batter and cook it from both sides at once. Round or square, any shape works.',
               tip: 'Pick one with a ready light.',
-              imageLabel: 'photo: waffle iron open on the counter'
+              image: 'images/waffle-iron.jpg',
+              imageLabel: 'photo: a row of waffle irons with their grids open'
             },
             {
               name: 'Mixing bowls',
               icon: '🥣',
               description: 'You need two. Mix the dry ingredients in one and the wet ingredients in the other, then combine them.',
               tip: 'A large bowl for the batter helps you fold gently.',
-              imageLabel: 'photo: two mixing bowls, one with flour and one with eggs and milk'
+              image: 'images/mixing-bowl.jpg',
+              imagePosition: 'center 72%',
+              imageLabel: 'photo: wooden spoon resting in a steel mixing bowl of batter'
             },
             {
               name: 'Whisk and spatula',
               icon: '🥄',
               description: 'Use the whisk to break up lumps in each bowl. Use a flexible spatula to fold the wet mix into the dry mix without overmixing.',
               tip: 'Stop folding as soon as the dry flour disappears.',
-              imageLabel: 'photo: whisk and spatula resting on a bowl'
+              image: 'images/whisk-spatula.jpg',
+              imagePosition: 'center 22%',
+              imageLabel: 'photo: a whisk, slotted spatula and spoons in a white jar'
             },
             {
               name: 'Ladle or measuring cup',
               icon: '🥛',
               description: 'A ladle or a measuring cup pours the same amount of batter every time, so your waffles cook evenly.',
               tip: 'About three-quarters of a cup fills most irons.',
-              imageLabel: 'photo: ladle pouring batter into a measuring cup'
+              image: 'images/measuring-cup.jpg',
+              imageLabel: 'photo: a glass measuring cup'
             }
           ],
           narration: [
@@ -81,11 +87,22 @@ window.COURSE_DATA = {
         {
           title: 'How a waffle iron works',
           duration: 26,
-          template: 'content',
-          imageLabel: 'diagram: open waffle iron showing heated grid plates',
+          template: 'iron',
           heading: 'Hot plates, deep pockets',
           body: 'Two heated grids cook the batter from both sides at once.',
           points: ['The grid makes pockets that crisp up', 'Steam escapes from the sides as it cooks', 'Most irons have a ready light'],
+          exploreLabel: 'Explore the waffle iron',
+          modalTitle: 'Explore the waffle iron',
+          // Parts: handle, top, bottom, light, switch. Each has a name and a short explanation.
+          parts: {
+            handle: { name: 'Handle', text: 'Lifts the lid and latches it shut. Always use the handle, because the metal around the plates gets very hot.' },
+            top: { name: 'Top grid plate', text: 'Cooks the upper side of the waffle. Its raised squares press down into the batter to make the deep pockets and crisp edges.' },
+            bottom: { name: 'Bottom grid plate', text: 'Holds the batter and browns the underside. Grease it lightly so the waffle lifts out cleanly.' },
+            light: { name: 'Ready light', text: 'Tells you when the plates are hot enough. Pour the batter only after it turns green, so the outside crisps right away.',
+              heating: 'The light is red while the iron heats up. When it turns green, the iron is ready for batter.' },
+            switch: { name: 'Power switch', text: 'Turns the heat on and off. Switch it on first and let the iron preheat before you pour any batter.',
+              tip: 'Try it: flip the switch on the iron and watch the plates heat up.' }
+          },
           narration: [
             'A waffle iron is two heated grids that close around the batter.',
             'The grid shape creates deep pockets with lots of crisp edges.',
@@ -101,7 +118,13 @@ window.COURSE_DATA = {
           title: 'Core ingredients',
           duration: 30,
           template: 'accordion',
-          imageLabel: 'photo: flour, eggs, milk, butter and baking powder',
+          icons: [
+            { icon: '🌾', label: 'Flour' },
+            { src: 'images/baking-powder.svg', label: 'Baking powder' },
+            { icon: '🥚', label: 'Eggs' },
+            { icon: '🥛', label: 'Milk' },
+            { icon: '🧈', label: 'Butter' }
+          ],
           heading: 'Six ingredients do the work',
           lede: 'Open each ingredient to see what it does and how much you need.',
           items: [
@@ -123,7 +146,9 @@ window.COURSE_DATA = {
           title: 'Mixing wet and dry',
           duration: 28,
           template: 'content',
-          imageLabel: 'photo: spatula folding wet into dry batter',
+          image: 'images/mixing-ingredients.jpg',
+          imageLabel: 'photo: whisking wet and dry ingredients together in a steel bowl',
+          imagePosition: 'center 55%',
           heading: 'Mix gently and stop early',
           body: 'A few lumps are fine. Overmixing makes waffles tough.',
           points: ['Whisk the dry ingredients in one bowl', 'Whisk the wet ingredients in the other', 'Pour wet into dry and fold until just combined'],
@@ -136,8 +161,9 @@ window.COURSE_DATA = {
         {
           title: 'Resting the batter',
           duration: 20,
-          template: 'content',
-          imageLabel: 'photo: covered bowl of batter resting on the counter',
+          template: 'rest',
+          timerMinutes: 5,
+          timerLabel: 'Click here to start a rest timer',
           heading: 'Give it five minutes',
           body: 'A short rest lets the flour absorb the liquid and the bubbles form.',
           points: ['Rest for 5 to 10 minutes', 'Heat the iron while you wait', "Don't stir again before cooking"],
@@ -153,24 +179,12 @@ window.COURSE_DATA = {
       title: 'Cooking',
       pages: [
         {
-          title: 'Heating and greasing',
-          duration: 22,
-          template: 'content',
-          imageLabel: 'photo: brushing oil onto a hot waffle iron',
-          heading: 'Start with a hot iron',
-          body: 'A fully heated iron sets the outside fast so the waffle crisps.',
-          points: ['Wait for the ready light', 'Brush or spray a thin layer of oil', 'Re-grease every two or three waffles'],
-          narration: [
-            'Always start with a fully heated iron.',
-            'Brush on a thin layer of oil so the waffle releases cleanly.',
-            'Add a little more oil every few waffles.'
-          ]
-        },
-        {
           title: 'Pouring the right amount',
           duration: 24,
           template: 'content',
-          imageLabel: 'photo: ladle pouring batter into the center of the iron',
+          image: 'images/pouring-batter.jpg',
+          imageLabel: 'photo: pouring batter from a funnel into the heated molds of a waffle iron',
+          imagePosition: 'center 72%',
           heading: 'Pour into the center',
           body: 'The batter spreads as the lid closes, so start with less than you think.',
           points: ['Pour into the middle of the grid', 'Leave the edges about an inch clear', 'Close the lid right away'],
@@ -184,7 +198,9 @@ window.COURSE_DATA = {
           title: "Knowing when it's done",
           duration: 24,
           template: 'content',
-          imageLabel: 'photo: golden waffle lifted out of the iron with a fork',
+          image: 'images/cooked-waffle.jpg',
+          imageLabel: 'photo: a cooked waffle being lifted out of the open iron',
+          imagePosition: '38% center',
           heading: 'Watch the steam',
           body: 'When the steam slows to a wisp, the waffle is ready.',
           points: ['Most waffles take 3 to 5 minutes', 'Look for deep golden brown', 'Lift it out with a fork or tongs'],
@@ -200,13 +216,15 @@ window.COURSE_DATA = {
       title: 'Serving',
       pages: [
         {
-          title: 'Keeping waffles crisp',
+          title: "Keeping waffles warm until they're all ready",
           duration: 22,
-          template: 'content',
-          imageLabel: 'photo: waffles on a wire rack in a low oven',
+          template: 'bake',
           heading: 'Keep them off the plate',
-          body: 'Stacking traps steam and softens the crust.',
-          points: ['Set waffles on a wire rack', 'Hold them in a 200°F oven', "Don't stack until you serve"],
+          body: 'Stacking traps steam and softens the crust. Hold finished waffles on a tray in a low oven while you cook the rest.',
+          targetTemp: 200,
+          waffleCount: 5,
+          steps: ['Turn the oven on to 200\u00B0F', 'Move 5 waffles from the waffle iron to the tray', 'Slide the tray into the oven'],
+          doneText: 'Nicely done! The waffles stay warm and crisp until you are ready to serve.',
           narration: [
             'Fresh waffles turn soft if you stack them.',
             'Set them on a wire rack in a low oven while you finish the batch.',
@@ -216,15 +234,28 @@ window.COURSE_DATA = {
         {
           title: 'Toppings and pairings',
           duration: 24,
-          template: 'content',
-          imageLabel: 'photo: waffles topped with berries, cream and syrup',
+          template: 'slider',
           heading: 'Sweet or savory',
-          body: 'Waffles go with almost anything. Start simple and build from there.',
-          points: ['Butter and maple syrup', 'Fresh berries and whipped cream', 'Fried chicken and hot honey'],
+          lede: 'Waffles go with almost anything. Select a section to slide it open and see how to serve it.',
+          // color: 'amber' | 'berry' | 'green' | 'blue'
+          items: [
+            { kind: 'Sweet', color: 'amber', icon: '🍁', name: 'Butter and maple syrup',
+              description: 'The classic. Melted butter sinks into every square while warm maple syrup pools in the pockets.',
+              tip: 'A pinch of flaky salt on top' },
+            { kind: 'Sweet', color: 'berry', icon: '🍓', name: 'Berries and whipped cream',
+              description: 'Fresh, tart berries cut through soft whipped cream for a light, bright finish.',
+              tip: 'Strawberries, blueberries or raspberries' },
+            { kind: 'Savory', color: 'green', icon: '🍗', name: 'Fried chicken and hot honey',
+              description: 'Crisp, salty chicken on a crisp waffle, finished with a sweet and spicy drizzle.',
+              tip: 'A few pickled jalapeños' },
+            { kind: 'Savory', color: 'blue', icon: '🍳', name: 'Egg, bacon and cheddar',
+              description: 'A soft fried egg and crisp bacon on a waffle with sharp melted cheddar make a hearty breakfast.',
+              tip: 'Fresh chives and black pepper' }
+          ],
           narration: [
             'Waffles work with sweet and savory toppings.',
-            'Butter and maple syrup are the classic choice.',
-            'Try berries and cream, or go savory with fried chicken and hot honey.'
+            'Go sweet with butter and maple syrup, or berries and whipped cream.',
+            'Or go savory with fried chicken and hot honey, or egg, bacon and cheddar.'
           ]
         },
         {

@@ -36,7 +36,7 @@ new CoursePlayer(element, window.COURSE_DATA, {
   menuOpen: false,
   captionsOn: false,
   showToast: false,   // preview the "Section Completed" toast
-  initialPage: 1,     // 1-12
+  initialPage: 1,     // 1-11
   initialTime: 0,
   height: null,       // e.g. 720 or '80vh'; defaults to filling the container
   persist: true,      // save progress to localStorage
@@ -52,10 +52,14 @@ The layout mode comes from the player's own width (desktop ≥ 1024px, tablet 64
 `COURSE_DATA` has a `title`, a `storageKey` for saved progress, and `modules`, each with a `title` and `pages`. Every page has a `title`, a narration `duration` in seconds, `narration` sentences for the captions panel, and a `template`:
 
 - `title`: full-bleed title page. Fields: `eyebrow`, `lede`, `meta`, `image`, `imageLabel`.
-- `content`: image and text slide. Fields: `heading`, `body`, `points`, `image`, `imageLabel`.
-- `tabs`: intro plus a row of tabs. Selecting a tab opens its panel, and selecting it again closes it. Fields: `heading`, `lede`, `items` (`name`, `description`, `tip`, `image`, `imageLabel`).
+- `content`: image and text slide. Fields: `heading`, `body`, `points`, `image`, `imageLabel`, optional `imagePosition`.
+- `tabs`: intro plus a row of tabs. Selecting a tab opens its panel, and selecting it again closes it. Fields: `heading`, `lede`, `items` (`name`, `description`, `tip`, `image`, `imageLabel`, and optional `imagePosition`, a CSS object-position such as `center 70%` to choose which part of the photo stays in view).
 - `completion`: the last page. Shows `heading` and `thanks` with confetti once every page is complete, and `pendingHeading` and `pendingBody` until then. Confetti is skipped when the visitor prefers reduced motion.
-- `accordion`: intro plus expandable list. Fields: `heading`, `lede`, `image`, `imageLabel`, `items` (`name`, `description`, `amount`).
+- `iron`: text slide with a waffle iron card that opens a modal. Pins on the drawing, a list and a power switch explain each part; each explored part gets a check mark. Fields: `heading`, `body`, `points`, `exploreLabel`, `modalTitle`, `parts` (`handle`, `top`, `bottom`, `light`, `switch`, each with `name` and `text`).
+- `rest`: text slide with a bottom tray that slides up to show a countdown timer and a waffle that browns as time runs out. Fields: `heading`, `body`, `points`, `timerMinutes` (default 5), `timerLabel`.
+- `bake`: hands-on activity. The learner sets an oven dial to `targetTemp`, moves `waffleCount` waffles from the waffle iron to a tray (drag, or tap or press Enter on a waffle), then slides the tray into the oven (drag the tray, or use the button). Fields: `heading`, `body`, `steps` (three step labels), `targetTemp`, `waffleCount`, `doneText`.
+- `slider`: horizontal accordion. Sections sit side by side as colored title strips, and selecting one slides it open to show its text. Fields: `heading`, `lede`, `items` (`name`, `kind` for a small label such as Sweet, `icon`, `description`, `tip`, and `color`: `amber`, `berry`, `green` or `blue`).
+- `accordion`: intro plus expandable list. Fields: `heading`, `lede`, `items` (`name`, `description`, `amount`), and either `icons` (a row of tiles, each `{ icon, label }` for an emoji or `{ src, label }` for a drawn image) or `image` and `imageLabel` for a photo.
 
 `COURSE_DATA.resources` lists the documents behind the document icon in the header: each has a `title`, a `type` (`'pdf'` or `'pptx'`), a `url` and an optional `description`. An entry with an empty `url` shows as "Coming soon". Keep the files in the `resources/` folder (see its README) and add one entry per file.
 
