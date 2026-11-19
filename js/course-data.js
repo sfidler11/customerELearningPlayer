@@ -163,7 +163,7 @@ window.COURSE_DATA = {
           duration: 20,
           template: 'rest',
           timerMinutes: 5,
-          timerLabel: 'Rest timer',
+          timerLabel: 'Click here to start a rest timer',
           heading: 'Give it five minutes',
           body: 'A short rest lets the flour absorb the liquid and the bubbles form.',
           points: ['Rest for 5 to 10 minutes', 'Heat the iron while you wait', "Don't stir again before cooking"],
