@@ -1194,12 +1194,31 @@
     return out;
   }
 
+
+  // Cartoon alarm clock for the rest timer page. The minute hand follows the timer (see restPaint).
+  var CLOCK_ART = '<svg class="cp-rest__clock" viewBox="0 0 200 210" role="img" aria-label="A cartoon alarm clock" focusable="false">' +
+    '<ellipse cx="100" cy="202" rx="62" ry="6" fill="#000" opacity=".1"/>' +
+    '<path d="M54 178 L40 200 M146 178 L160 200" stroke="#7A3A0C" stroke-width="10" stroke-linecap="round"/>' +
+    '<g class="cp-clock-bells"><circle cx="52" cy="40" r="26" fill="#F2B84B" stroke="#7A3A0C" stroke-width="5"/><circle cx="148" cy="40" r="26" fill="#F2B84B" stroke="#7A3A0C" stroke-width="5"/>' +
+    '<rect x="94" y="14" width="12" height="14" rx="4" fill="#7A3A0C"/></g>' +
+    '<circle cx="100" cy="112" r="76" fill="#CC5500" stroke="#7A3A0C" stroke-width="6"/>' +
+    '<circle cx="100" cy="112" r="60" fill="#FFF8EC" stroke="#7A3A0C" stroke-width="4"/>' +
+    '<g stroke="#7A3A0C" stroke-width="4" stroke-linecap="round"><path d="M100 60v8M100 156v8M48 112h8M144 112h8"/></g>' +
+    '<g fill="#3B2412"><ellipse cx="82" cy="100" rx="6" ry="8"/><ellipse cx="118" cy="100" rx="6" ry="8"/></g>' +
+    '<g fill="#fff"><circle cx="84" cy="97" r="2.2"/><circle cx="120" cy="97" r="2.2"/></g>' +
+    '<path d="M84 124 Q100 140 116 124" fill="none" stroke="#3B2412" stroke-width="4.5" stroke-linecap="round"/>' +
+    '<circle cx="70" cy="120" r="7" fill="#F4A58A" opacity=".7"/><circle cx="130" cy="120" r="7" fill="#F4A58A" opacity=".7"/>' +
+    '<path d="M100 112 L100 80" stroke="#3B2412" stroke-width="5" stroke-linecap="round" class="cp-clock-min"/>' +
+    '<path d="M100 112 L120 118" stroke="#3B2412" stroke-width="6" stroke-linecap="round"/>' +
+    '<circle cx="100" cy="112" r="6" fill="#7A3A0C"/>' +
+  '</svg>';
+
   CoursePlayer.prototype.tplRest = function (d, n) {
     var secs = Math.round((d.timerMinutes || 5) * 60);
     if (this.state.rest.left == null || this.state.rest.total !== secs) this.state.rest = { total: secs, left: secs, running: false, end: 0 };
     var label = esc(d.timerLabel || 'Rest timer');
     return '<div class="cp-rest">' +
-      '<div class="cp-rest__text">' +
+      '<div class="cp-rest__text">' + CLOCK_ART +
         '<p class="cp-eyebrow">Page ' + n + ' · ' + esc(d.title) + '</p>' +
         '<h2 class="cp-h2">' + esc(d.heading) + '</h2>' +
         '<p class="cp-body-text">' + esc(d.body) + '</p>' +
@@ -1257,6 +1276,10 @@
     el.querySelector('[data-role=rest-time]').textContent = txt;
     el.querySelector('[data-role=rest-peek]').textContent = left === 0 ? 'Done' : (r.running ? txt + ' left' : txt);
     el.querySelector('[data-role=rest-bar]').style.width = (p * 100) + '%';
+    var hand = el.querySelector('.cp-clock-min');
+    if (hand) hand.setAttribute('transform', 'rotate(' + (p * 360).toFixed(1) + ' 100 112)');
+    var clock = el.querySelector('.cp-rest__clock');
+    if (clock) clock.classList.toggle('is-ringing', left === 0);
     // Pale batter to golden brown.
     var face = mix('#F6E9C4', '#D98A1F', Math.min(1, p / 0.85));
     var rim = mix('#E8D9B0', '#B86A14', Math.min(1, p / 0.85));
