@@ -684,7 +684,6 @@ a.cp-res:hover { background: var(--hover); border-color: var(--brand-border); }
 .cp--phone .cp-bk-zone { padding: 8px 6px; gap: 6px; }
 .cp--phone .cp-bake__scene { padding-bottom: 46px; }
 /* Keep-warm page: intro text 2 points larger than the standard slide text. */
-.cp-bake__intro .cp-eyebrow { font-size: 14px; }
 .cp-bake__intro .cp-h2 { font-size: 40px; }
 .cp-bake__intro .cp-body-text { font-size: 19px; }
 .cp-bake__intro .cp-bk-step { font-size: 18px; }
