@@ -4,7 +4,7 @@
  * Each page has:
  *   title      Menu and eyebrow title
  *   duration   Narration length in seconds (the demo simulates audio with a timer)
- *   template   'title' | 'content' | 'accordion'
+ *   template   'title' | 'content' | 'accordion' | 'tabs' | 'slider' | 'completion'
  *   narration  Sentences shown in the captions panel
  * plus the fields its template needs (see README).
  */
@@ -228,15 +228,28 @@ window.COURSE_DATA = {
         {
           title: 'Toppings and pairings',
           duration: 24,
-          template: 'content',
-          imageLabel: 'photo: waffles topped with berries, cream and syrup',
+          template: 'slider',
           heading: 'Sweet or savory',
-          body: 'Waffles go with almost anything. Start simple and build from there.',
-          points: ['Butter and maple syrup', 'Fresh berries and whipped cream', 'Fried chicken and hot honey'],
+          lede: 'Waffles go with almost anything. Select a section to slide it open and see how to serve it.',
+          // color: 'amber' | 'berry' | 'green' | 'blue'
+          items: [
+            { kind: 'Sweet', color: 'amber', icon: '🍁', name: 'Butter and maple syrup',
+              description: 'The classic. Melted butter sinks into every square while warm maple syrup pools in the pockets.',
+              tip: 'A pinch of flaky salt on top' },
+            { kind: 'Sweet', color: 'berry', icon: '🍓', name: 'Berries and whipped cream',
+              description: 'Fresh, tart berries cut through soft whipped cream for a light, bright finish.',
+              tip: 'Strawberries, blueberries or raspberries' },
+            { kind: 'Savory', color: 'green', icon: '🍗', name: 'Fried chicken and hot honey',
+              description: 'Crisp, salty chicken on a crisp waffle, finished with a sweet and spicy drizzle.',
+              tip: 'A few pickled jalapeños' },
+            { kind: 'Savory', color: 'blue', icon: '🍳', name: 'Egg, bacon and cheddar',
+              description: 'A soft fried egg and crisp bacon on a waffle with sharp melted cheddar make a hearty breakfast.',
+              tip: 'Fresh chives and black pepper' }
+          ],
           narration: [
             'Waffles work with sweet and savory toppings.',
-            'Butter and maple syrup are the classic choice.',
-            'Try berries and cream, or go savory with fried chicken and hot honey.'
+            'Go sweet with butter and maple syrup, or berries and whipped cream.',
+            'Or go savory with fried chicken and hot honey, or egg, bacon and cheddar.'
           ]
         },
         {

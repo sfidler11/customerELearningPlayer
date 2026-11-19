@@ -299,6 +299,7 @@
         case 'captions': self.setCaptions(!self.state.captionsOn); break;
         case 'acc': self.toggleItem(Number(target.getAttribute('data-item'))); break;
         case 'tab': self.toggleTab(Number(target.getAttribute('data-item'))); break;
+        case 'slide': self.toggleSlide(Number(target.getAttribute('data-item'))); break;
         case 'exit': self.openExitDialog(); break;
         case 'keep': self.closeExitDialog(); break;
         case 'confirm-exit': self.confirmExit(); break;
@@ -471,6 +472,19 @@
       var open = k === this.state.openItem;
       items[k].classList.toggle('is-open', open);
       items[k].querySelector('.cp-acc-btn').setAttribute('aria-expanded', String(open));
+    }
+    this.fitAfterMotion();
+  };
+
+  // Horizontal accordion: the chosen section widens to show its text, the rest shrink to title strips.
+  CoursePlayer.prototype.toggleSlide = function (i) {
+    this.state.openItem = this.state.openItem === i ? -1 : i;
+    var open = this.state.openItem;
+    var secs = this.slots.region.querySelectorAll('.cp-hs');
+    for (var k = 0; k < secs.length; k++) {
+      var on = k === open;
+      secs[k].classList.toggle('is-open', on);
+      secs[k].querySelector('.cp-hs__btn').setAttribute('aria-expanded', String(on));
     }
     this.fitAfterMotion();
   };
@@ -817,6 +831,7 @@
     if (d.template === 'title') region.innerHTML = this.tplTitle(d);
     else if (d.template === 'accordion') region.innerHTML = this.tplAccordion(d, n);
     else if (d.template === 'tabs') region.innerHTML = this.tplTabs(d, n);
+    else if (d.template === 'slider') region.innerHTML = this.tplSlider(d, n);
     else if (d.template === 'completion') region.innerHTML = this.tplCompletion(d);
     else region.innerHTML = this.tplContent(d, n);
 
@@ -923,6 +938,34 @@
       '<h2 class="cp-done__title">' + esc(d.pendingHeading) + '</h2>' +
       '<p class="cp-done__text">' + esc(d.pendingBody) + ' You have finished ' + s.completed.size + ' of ' + this.pages.length + ' pages. Still to finish:</p>' +
       groups +
+    '</div>';
+  };
+
+  CoursePlayer.prototype.tplSlider = function (d, n) {
+    var open = this.state.openItem;
+    var secs = (d.items || []).map(function (it, i) {
+      var isOpen = i === open;
+      var id = 'cp-hs-' + n + '-' + i;
+      return '<section class="cp-hs cp-hs--' + esc(it.color || 'amber') + (isOpen ? ' is-open' : '') + '">' +
+        '<button type="button" class="cp-hs__btn" id="' + id + '-btn" data-act="slide" data-item="' + i + '" aria-expanded="' + isOpen + '" aria-controls="' + id + '">' +
+          '<span class="cp-hs__icon" aria-hidden="true">' + esc(it.icon || '') + '</span>' +
+          '<span class="cp-hs__title">' + esc(it.name) + '</span>' +
+        '</button>' +
+        '<div class="cp-hs__panel" id="' + id + '" role="region" aria-labelledby="' + id + '-btn"><div class="cp-hs__inner">' +
+          '<span class="cp-hs__kind">' + esc(it.kind || '') + '</span>' +
+          '<h3 class="cp-hs__heading">' + esc(it.name) + '</h3>' +
+          '<p>' + esc(it.description) + '</p>' +
+          (it.tip ? '<p><strong>Try it with:</strong> ' + esc(it.tip) + '</p>' : '') +
+        '</div></div>' +
+      '</section>';
+    }).join('');
+    return '<div class="cp-hs-slide">' +
+      '<div class="cp-hs-intro">' +
+        '<p class="cp-eyebrow">Page ' + n + ' · ' + esc(d.title) + '</p>' +
+        '<h2 class="cp-h2">' + esc(d.heading) + '</h2>' +
+        '<p class="cp-body-text">' + esc(d.lede) + '</p>' +
+      '</div>' +
+      '<div class="cp-hs-row">' + secs + '</div>' +
     '</div>';
   };
 
