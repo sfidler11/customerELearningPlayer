@@ -466,7 +466,7 @@ a.cp-res:hover { background: var(--hover); border-color: var(--brand-border); }
 .cp-hs__title { font-size: 16px; font-weight: 700; line-height: 1.2; writing-mode: vertical-rl; transform: rotate(180deg); max-height: 100%; text-align: left; }
 .cp-hs__panel { position: absolute; top: 0; bottom: 0; left: 64px; right: 0; opacity: 0; visibility: hidden; transition: opacity .2s ease, visibility 0s linear .2s; }
 .cp-hs.is-open .cp-hs__panel { opacity: 1; visibility: visible; transition: opacity .3s ease .2s, visibility 0s; }
-.cp-hs__inner { height: 100%; overflow: auto; padding: 24px 26px; display: flex; flex-direction: column; justify-content: center; min-width: 240px; color: var(--ink); }
+.cp-hs__inner { height: 100%; overflow: hidden; padding: 24px 26px; display: flex; flex-direction: column; justify-content: center; min-width: 240px; color: var(--ink); }
 .cp-hs__kind { align-self: flex-start; padding: 3px 10px; margin-bottom: 10px; border-radius: 999px; background: var(--hs-strip); color: var(--hs-ink); font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 .cp-hs__heading { margin: 0 0 10px; font-size: 24px; line-height: 1.2; letter-spacing: -.01em; color: var(--hs-ink); }
 .cp-hs__inner p { margin: 0 0 10px; font-size: 17px; line-height: 1.55; color: var(--ink-2); }

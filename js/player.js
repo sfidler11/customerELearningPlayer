@@ -493,7 +493,7 @@
   CoursePlayer.prototype.fitAfterMotion = function () {
     var self = this;
     clearTimeout(this.fitTimer);
-    this.fitTimer = setTimeout(function () { self.fitPage(); }, 330);
+    this.fitTimer = setTimeout(function () { self.fitPage(); }, 520);
   };
 
   // Tabs: selecting the open tab again closes it, so every panel can be collapsed.
@@ -718,6 +718,15 @@
     el.style.zoom = '';
     var avail = region.clientHeight;
     if (!avail) return;
+    // Horizontal accordion: grow the row until the open section's text fits without its own scrollbar.
+    var row = el.querySelector('.cp-hs-row');
+    if (row) {
+      row.style.minHeight = '';
+      var inner = row.querySelector('.cp-hs.is-open .cp-hs__inner');
+      if (inner && inner.scrollHeight > inner.clientHeight + 1) {
+        row.style.minHeight = (row.clientHeight + inner.scrollHeight - inner.clientHeight) + 'px';
+      }
+    }
     var z = 1;
     for (var i = 0; i < 4; i++) {
       var need = region.scrollHeight;
