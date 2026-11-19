@@ -4,7 +4,7 @@
  * Each page has:
  *   title      Menu and eyebrow title
  *   duration   Narration length in seconds (the demo simulates audio with a timer)
- *   template   'title' | 'content' | 'accordion' | 'tabs' | 'slider' | 'iron' | 'completion'
+ *   template   'title' | 'content' | 'accordion' | 'tabs' | 'slider' | 'iron' | 'rest' | 'completion'
  *   narration  Sentences shown in the captions panel
  * plus the fields its template needs (see README).
  */
@@ -161,8 +161,9 @@ window.COURSE_DATA = {
         {
           title: 'Resting the batter',
           duration: 20,
-          template: 'content',
-          imageLabel: 'photo: covered bowl of batter resting on the counter',
+          template: 'rest',
+          timerMinutes: 5,
+          timerLabel: 'Rest timer',
           heading: 'Give it five minutes',
           body: 'A short rest lets the flour absorb the liquid and the bubbles form.',
           points: ['Rest for 5 to 10 minutes', 'Heat the iron while you wait', "Don't stir again before cooking"],

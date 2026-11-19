@@ -134,6 +134,7 @@
       completed: new Set(saved ? saved.completed : []),
       openItem: 0,
       ironSeen: new Set(),
+      rest: { left: null, running: false, end: 0 },
       mode: 'desktop',
       short: false,
       exited: false
@@ -308,6 +309,9 @@
         case 'resources': self.openResources(); break;
         case 'resources-close': self.closeExitDialog(); break;
         case 'iron-open': self.openIron(); break;
+        case 'tray': self.toggleTray(); break;
+        case 'rest-start': self.restStart(); break;
+        case 'rest-reset': self.restReset(); break;
         case 'iron-part': self.ironPart(target.getAttribute('data-part')); break;
         case 'iron-switch': self.ironSwitch(); break;
         case 'resume': self.resume(); break;
@@ -840,12 +844,14 @@
     this.el.classList.toggle('cp--title-page', d.template === 'title');
     this.slots.subtitle.textContent = 'Module ' + (p.module + 1) + ' · ' + mod.title;
 
+    this.restStop();
     var region = this.slots.region;
     region.setAttribute('aria-label', 'Page ' + n + ': ' + d.title);
     region.scrollTop = 0;
     if (d.template === 'title') region.innerHTML = this.tplTitle(d);
     else if (d.template === 'accordion') region.innerHTML = this.tplAccordion(d, n);
     else if (d.template === 'tabs') region.innerHTML = this.tplTabs(d, n);
+    else if (d.template === 'rest') region.innerHTML = this.tplRest(d, n);
     else if (d.template === 'iron') region.innerHTML = this.tplIron(d, n);
     else if (d.template === 'slider') region.innerHTML = this.tplSlider(d, n);
     else if (d.template === 'completion') region.innerHTML = this.tplCompletion(d);
@@ -864,6 +870,7 @@
     bar.classList.remove('cp-no-anim');
 
     this.updateIronCard();
+    this.restPaint();
     this.fitCompletion();
     this.fitPage();
     this.renderCaptionText();
@@ -1166,6 +1173,129 @@
     stage.querySelector('[data-role=switch-text]').textContent = on ? 'ON' : 'OFF';
     if (on) this.ironTimer = setTimeout(function () { stage.classList.add('is-ready'); }, 1600);
     this.ironPart('switch');
+  };
+
+
+  // ---------- Rest timer tray (slides up from the bottom of the page) ----------
+  var REST_GRID = (function () {
+    var lines = '';
+    for (var i = 0; i < 5; i++) { var v = 48 + i * 36; lines += '<path d="M' + v + ' 20V220M20 ' + v + 'H220"/>'; }
+    return lines;
+  })();
+
+  function mix(a, b, t) {
+    var out = '#';
+    for (var i = 0; i < 3; i++) {
+      var x = parseInt(a.substr(1 + i * 2, 2), 16), y = parseInt(b.substr(1 + i * 2, 2), 16);
+      var v = Math.round(x + (y - x) * t).toString(16);
+      out += (v.length < 2 ? '0' : '') + v;
+    }
+    return out;
+  }
+
+  CoursePlayer.prototype.tplRest = function (d, n) {
+    var secs = Math.round((d.timerMinutes || 5) * 60);
+    if (this.state.rest.left == null || this.state.rest.total !== secs) this.state.rest = { total: secs, left: secs, running: false, end: 0 };
+    var label = esc(d.timerLabel || 'Rest timer');
+    return '<div class="cp-rest">' +
+      '<div class="cp-rest__text">' +
+        '<p class="cp-eyebrow">Page ' + n + ' · ' + esc(d.title) + '</p>' +
+        '<h2 class="cp-h2">' + esc(d.heading) + '</h2>' +
+        '<p class="cp-body-text">' + esc(d.body) + '</p>' +
+        '<ul class="cp-points">' + (d.points || []).map(function (pt) { return '<li>' + esc(pt) + '</li>'; }).join('') + '</ul>' +
+      '</div>' +
+      '<section class="cp-tray" data-role="tray" aria-label="' + label + '">' +
+        '<button type="button" class="cp-tray__handle" data-act="tray" aria-expanded="false" aria-controls="cp-tray-body">' +
+          '<span class="cp-tray__grip" aria-hidden="true"></span>' +
+          '<span class="cp-tray__title"><span aria-hidden="true">⏱</span> ' + label + '</span>' +
+          '<span class="cp-tray__peek" data-role="rest-peek"></span>' +
+          '<span class="cp-tray__chev">' + ICON.chevronDown + '</span>' +
+        '</button>' +
+        '<div class="cp-tray__body" id="cp-tray-body">' +
+          '<svg class="cp-rest__waffle" viewBox="0 0 240 240" role="img" aria-label="A waffle that browns as the timer runs" data-role="rest-waffle">' +
+            '<defs><clipPath id="cp-rest-clip"><circle cx="120" cy="120" r="98"/></clipPath></defs>' +
+            '<circle cx="120" cy="124" r="108" fill="#000" opacity=".08"/>' +
+            '<circle data-role="w-rim" cx="120" cy="120" r="108" fill="#E8D9B0"/>' +
+            '<circle data-role="w-face" cx="120" cy="120" r="98" fill="#F6E9C4"/>' +
+            '<g data-role="w-grid" clip-path="url(#cp-rest-clip)" fill="none" stroke="#D9C79A" stroke-width="9" stroke-linecap="round">' + REST_GRID + '</g>' +
+            '<g class="cp-rest__steam" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".0">' +
+              '<path class="cp-rsteam cp-rsteam--1" d="M90 70 q-12 -16 0 -32 q12 -16 0 -32"/>' +
+              '<path class="cp-rsteam cp-rsteam--2" d="M120 64 q-12 -16 0 -32 q12 -16 0 -32"/>' +
+              '<path class="cp-rsteam cp-rsteam--3" d="M150 70 q-12 -16 0 -32 q12 -16 0 -32"/>' +
+            '</g>' +
+          '</svg>' +
+          '<div class="cp-rest__panel">' +
+            '<p class="cp-rest__time" data-role="rest-time" role="timer" aria-live="off">5:00</p>' +
+            '<div class="cp-rest__bar" aria-hidden="true"><span data-role="rest-bar"></span></div>' +
+            '<p class="cp-rest__status" data-role="rest-status" aria-live="polite"></p>' +
+            '<div class="cp-rest__btns">' +
+              '<button type="button" class="cp-btn cp-btn--primary" data-act="rest-start" data-role="rest-start">Start timer</button>' +
+              '<button type="button" class="cp-btn cp-btn--outline" data-act="rest-reset">Reset</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</section>' +
+    '</div>';
+  };
+
+  CoursePlayer.prototype.toggleTray = function () {
+    var tray = this.slots.region.querySelector('[data-role=tray]');
+    if (!tray) return;
+    var open = !tray.classList.contains('is-open');
+    tray.classList.toggle('is-open', open);
+    tray.querySelector('.cp-tray__handle').setAttribute('aria-expanded', String(open));
+  };
+
+  // Paints the countdown, progress bar and the waffle's colour from the time left.
+  CoursePlayer.prototype.restPaint = function () {
+    var r = this.state.rest, el = this.slots.region;
+    if (!el || !el.querySelector('[data-role=rest-time]')) return;
+    var left = Math.max(0, r.left), total = r.total;
+    var p = total ? 1 - left / total : 0;
+    var txt = fmt(Math.ceil(left));
+    el.querySelector('[data-role=rest-time]').textContent = txt;
+    el.querySelector('[data-role=rest-peek]').textContent = left === 0 ? 'Done' : (r.running ? txt + ' left' : txt);
+    el.querySelector('[data-role=rest-bar]').style.width = (p * 100) + '%';
+    // Pale batter to golden brown.
+    var face = mix('#F6E9C4', '#D98A1F', Math.min(1, p / 0.85));
+    var rim = mix('#E8D9B0', '#B86A14', Math.min(1, p / 0.85));
+    var line = mix('#D9C79A', '#9A540E', Math.min(1, p / 0.85));
+    el.querySelector('[data-role=w-face]').setAttribute('fill', face);
+    el.querySelector('[data-role=w-rim]').setAttribute('fill', rim);
+    el.querySelector('[data-role=w-grid]').setAttribute('stroke', line);
+    el.querySelector('[data-role=rest-waffle]').classList.toggle('is-cooking', r.running);
+    var btn = el.querySelector('[data-role=rest-start]');
+    btn.textContent = r.running ? 'Pause' : (left === 0 ? 'Start again' : (left < total ? 'Resume' : 'Start timer'));
+    el.querySelector('[data-role=rest-status]').textContent = left === 0 ? 'Time is up. Your batter is rested and ready to cook.' :
+      r.running ? 'Resting. The batter is thickening and the bubbles are forming.' : (left < total ? 'Paused.' : 'Press start when your batter is covered and resting.');
+  };
+
+  CoursePlayer.prototype.restStart = function () {
+    var r = this.state.rest, self = this;
+    if (r.running) { this.restStop(); this.restPaint(); return; }
+    if (r.left <= 0) r.left = r.total;
+    r.running = true;
+    r.end = Date.now() + r.left * 1000;
+    clearInterval(this.restTimer);
+    this.restTimer = setInterval(function () {
+      r.left = Math.max(0, (r.end - Date.now()) / 1000);
+      if (r.left <= 0) { self.restStop(); r.left = 0; }
+      self.restPaint();
+    }, 200);
+    this.restPaint();
+  };
+
+  CoursePlayer.prototype.restStop = function () {
+    clearInterval(this.restTimer);
+    var r = this.state.rest;
+    if (r && r.running) r.left = Math.max(0, (r.end - Date.now()) / 1000);
+    if (r) r.running = false;
+  };
+
+  CoursePlayer.prototype.restReset = function () {
+    this.restStop();
+    this.state.rest.left = this.state.rest.total;
+    this.restPaint();
   };
 
   CoursePlayer.prototype.tplTabs = function (d, n) {

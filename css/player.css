@@ -567,3 +567,38 @@ a.cp-res:hover { background: var(--hover); border-color: var(--brand-border); }
 .cp-iron__slide p { margin: 0 0 8px; font-size: 15px; line-height: 1.5; color: var(--ink-2); }
 .cp-iron__slide p:last-child { margin-bottom: 0; }
 .cp-iron__slide .cp-iron__tip { font-weight: 600; color: var(--ink); }
+
+/* ---------- Rest timer tray ---------- */
+.cp-rest { position: relative; min-height: 100%; overflow: hidden; padding: 32px 32px 92px; }
+.cp-rest__text { max-width: 640px; }
+.cp-tray { position: absolute; left: 0; right: 0; bottom: 0; background: var(--surface); border-top: 1px solid var(--brand-border); border-radius: 18px 18px 0 0; box-shadow: 0 -6px 24px rgba(30, 28, 26, .12); transform: translateY(calc(100% - 64px)); transition: transform .45s var(--ease); }
+.cp-tray.is-open { transform: none; }
+.cp-tray__handle { position: relative; width: 100%; height: 64px; display: flex; align-items: center; gap: 12px; padding: 0 20px; border: 0; background: var(--brand-tint); border-radius: 18px 18px 0 0; cursor: pointer; text-align: left; }
+.cp-tray__handle:focus-visible { outline: 3px solid var(--brand-strong); outline-offset: -4px; }
+.cp-tray__grip { position: absolute; top: 7px; left: 50%; width: 44px; height: 5px; margin-left: -22px; border-radius: 3px; background: var(--brand-border); }
+.cp-tray__title { font-size: 16px; font-weight: 700; color: var(--brand-strong); }
+.cp-tray__peek { margin-left: auto; font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
+.cp-tray__chev { width: 22px; height: 22px; color: var(--brand-strong); transform: rotate(180deg); transition: transform .35s var(--ease); }
+.cp-tray.is-open .cp-tray__chev { transform: none; }
+.cp-tray__body { display: flex; align-items: center; gap: 28px; padding: 18px 28px 24px; }
+.cp-rest__waffle { flex: none; width: 150px; height: 150px; }
+.cp-rest__waffle path, .cp-rest__waffle circle { transition: fill .35s linear, stroke .35s linear; }
+.cp-rest__panel { flex: 1; min-width: 0; }
+.cp-rest__time { margin: 0; font-size: 56px; line-height: 1; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.cp-rest__bar { height: 8px; margin: 12px 0 10px; border-radius: 4px; background: var(--line-soft); overflow: hidden; }
+.cp-rest__bar span { display: block; height: 100%; width: 0; border-radius: 4px; background: linear-gradient(90deg, #F2CF7A, #D98A1F); transition: width .25s linear; }
+.cp-rest__status { margin: 0 0 12px; min-height: 2.9em; font-size: 15px; line-height: 1.45; color: var(--ink-2); }
+.cp-rest__btns { display: flex; gap: 10px; flex-wrap: wrap; }
+.cp-rest__steam { opacity: 0; transition: opacity .4s; }
+.cp-rest__waffle.is-cooking .cp-rest__steam { opacity: 1; }
+.cp-rsteam { opacity: 0; }
+.cp-rest__waffle.is-cooking .cp-rsteam { animation: cp-steam 2.8s ease-in infinite; }
+.cp-rest__waffle.is-cooking .cp-rsteam--2 { animation-delay: .9s; }
+.cp-rest__waffle.is-cooking .cp-rsteam--3 { animation-delay: 1.8s; }
+.cp--phone .cp-rest { padding: 16px 16px 84px; }
+.cp--phone .cp-tray__body { flex-direction: column; align-items: stretch; gap: 8px; padding: 12px 16px 18px; }
+.cp--phone .cp-rest__waffle { width: 96px; height: 96px; align-self: center; }
+.cp--phone .cp-rest__time { font-size: 44px; text-align: center; }
+.cp--phone .cp-rest__status { text-align: center; min-height: 2.9em; margin-bottom: 8px; }
+.cp--phone .cp-rest__btns { justify-content: center; }
+@media (prefers-reduced-motion: reduce) { .cp-tray, .cp-tray__chev { transition: none; } .cp-rest__waffle.is-cooking .cp-rsteam { animation: none; } }
