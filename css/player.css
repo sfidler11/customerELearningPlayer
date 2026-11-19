@@ -532,7 +532,7 @@ a.cp-res:hover { background: var(--hover); border-color: var(--brand-border); }
 .cp-switch.is-seen .cp-iron__check { display: block; }
 .cp-switch.is-active { box-shadow: 0 0 0 3px var(--brand-strong), 0 2px 8px rgba(0,0,0,.3); }
 
-.cp-iron__info { min-height: 132px; padding: 16px 18px; background: var(--brand-tint); border: 1px solid var(--brand-border); border-radius: 12px; }
+.cp-iron__info { display: grid; min-height: 132px; padding: 16px 18px; background: var(--brand-tint); border: 1px solid var(--brand-border); border-radius: 12px; }
 .cp-iron__info h3 { margin: 0 0 6px; font-size: 19px; color: var(--brand-strong); }
 .cp-iron__info p { margin: 0 0 8px; font-size: 15px; line-height: 1.5; color: var(--ink-2); }
 .cp-iron__info p:last-child { margin-bottom: 0; }
@@ -546,7 +546,7 @@ a.cp-res:hover { background: var(--hover); border-color: var(--brand-border); }
 .cp-iron-row.is-seen .cp-iron-row__mark { background: #1f7a3a; }
 .cp-iron-row.is-seen .cp-iron-row__num { display: none; }
 .cp-iron-row.is-seen .cp-iron-row__mark svg { display: block; }
-.cp-iron__progress { margin: 12px 0 0; font-size: 14px; font-weight: 600; color: var(--muted); }
+.cp-iron__progress { min-height: 3em; margin: 12px 0 0; font-size: 14px; font-weight: 600; color: var(--muted); }
 .cp-iron__progress.is-done { color: #1f7a3a; }
 .cp--phone .cp-dialog--iron { padding: 16px; }
 .cp--phone .cp-iron, .cp--short .cp-iron { grid-template-columns: 1fr; gap: 14px; }
@@ -558,3 +558,12 @@ a.cp-res:hover { background: var(--hover); border-color: var(--brand-border); }
 .cp--phone .cp-switch[aria-checked=true] .cp-switch__knob { transform: translateX(16px); }
 .cp--phone .cp-iron__info { min-height: 0; }
 @media (prefers-reduced-motion: reduce) { .cp-iron__glow, .cp-iron__bulb, .cp-switch__knob, .cp-switch__track { transition: none; } .cp-pin, .cp-steam { animation: none !important; } }
+
+.cp-iron__slide { grid-area: 1 / 1; visibility: hidden; }
+.cp-iron__slide.is-current { visibility: visible; }
+.cp-iron__heat { visibility: hidden; }
+.cp-iron__stage.is-on ~ .cp-iron__side .cp-iron__slide.is-current .cp-iron__heat { visibility: visible; }
+.cp-iron__slide h3 { margin: 0 0 6px; font-size: 19px; color: var(--brand-strong); }
+.cp-iron__slide p { margin: 0 0 8px; font-size: 15px; line-height: 1.5; color: var(--ink-2); }
+.cp-iron__slide p:last-child { margin-bottom: 0; }
+.cp-iron__slide .cp-iron__tip { font-weight: 600; color: var(--ink); }

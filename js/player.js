@@ -1069,6 +1069,15 @@
         '<span class="cp-iron-row__name">' + esc((parts[id] || {}).name || id) + '</span>' +
         '<span class="cp-sr cp-iron-row__state"></span></button></li>';
     }).join('');
+    // Every explanation sits in the same grid cell so the panel keeps the height of the longest one.
+    var infoSlides = '<div class="cp-iron__slide is-current" data-slide="hint"><p class="cp-iron__hint">Select a numbered point on the waffle iron, or a part in the list, to learn why it matters.</p></div>' +
+      IRON_PARTS.map(function (id) {
+        var part = parts[id] || { name: id, text: '' };
+        return '<div class="cp-iron__slide" data-slide="' + id + '"><h3>' + esc(part.name) + '</h3><p>' + esc(part.text) + '</p>' +
+          (id === 'switch' ? '<p class="cp-iron__tip">' + esc(part.tip || '') + '</p>' +
+            '<p class="cp-iron__tip cp-iron__heat">' + esc((parts.light && parts.light.heating) || 'The red light means the iron is heating up.') + '</p>' : '') +
+          '</div>';
+      }).join('');
     this.slots.overlay.innerHTML =
       '<div class="cp-dialog-layer">' +
         '<div class="cp-dialog cp-dialog--iron" role="dialog" aria-modal="true" aria-labelledby="cp-iron-title">' +
@@ -1083,9 +1092,7 @@
               '</button>' +
             '</div>' +
             '<div class="cp-iron__side">' +
-              '<div class="cp-iron__info" data-role="iron-info" aria-live="polite">' +
-                '<p class="cp-iron__hint">Select a numbered point on the waffle iron, or a part in the list, to learn why it matters.</p>' +
-              '</div>' +
+              '<div class="cp-iron__info" data-role="iron-info" aria-live="polite">' + infoSlides + '</div>' +
               '<ul class="cp-iron__list">' + list + '</ul>' +
               '<p class="cp-iron__progress" data-role="iron-progress"></p>' +
             '</div>' +
@@ -1125,10 +1132,9 @@
   };
 
   CoursePlayer.prototype.ironShow = function (id) {
-    var part = (this.ironData().parts || {})[id] || { name: id, text: '' };
-    var info = this.slots.overlay.querySelector('[data-role=iron-info]');
-    info.innerHTML = '<h3>' + esc(part.name) + '</h3><p>' + esc(part.text) + '</p>' +
-      (id === 'switch' ? '<p class="cp-iron__tip">' + esc(part.tip || '') + '</p>' : '');
+    this.slots.overlay.querySelectorAll('.cp-iron__slide').forEach(function (el) {
+      el.classList.toggle('is-current', el.getAttribute('data-slide') === id);
+    });
     this.slots.overlay.querySelectorAll('.cp-pin, .cp-iron-row, .cp-switch').forEach(function (b) {
       var bid = b.getAttribute('data-part') || (b.classList.contains('cp-switch') ? 'switch' : '');
       b.classList.toggle('is-active', bid === id);
@@ -1160,14 +1166,6 @@
     stage.querySelector('[data-role=switch-text]').textContent = on ? 'ON' : 'OFF';
     if (on) this.ironTimer = setTimeout(function () { stage.classList.add('is-ready'); }, 1600);
     this.ironPart('switch');
-    if (on) {
-      var d = this.ironData();
-      var info = this.slots.overlay.querySelector('[data-role=iron-info]');
-      var extra = document.createElement('p');
-      extra.className = 'cp-iron__tip';
-      extra.textContent = (d.parts && d.parts.light && d.parts.light.heating) || 'The red light means the iron is heating up.';
-      info.appendChild(extra);
-    }
   };
 
   CoursePlayer.prototype.tplTabs = function (d, n) {
