@@ -33,6 +33,7 @@
     replay: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>',
     volume: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>',
     muted: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5L6 9H3v6h3l5 4V5z"/><path d="M22 9l-6 6M16 9l6 6"/></svg>',
+    clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9.5 2.5h5M12 2.5V5"/></svg>',
     check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'
   };
 
@@ -1200,14 +1201,14 @@
     return '<div class="cp-rest">' +
       '<div class="cp-rest__text">' +
         '<p class="cp-eyebrow">Page ' + n + ' · ' + esc(d.title) + '</p>' +
-        '<h2 class="cp-h2">' + esc(d.heading) + '</h2>' +
+        '<h2 class="cp-h2 cp-h2--icon"><span class="cp-clock">' + ICON.clock + '</span>' + esc(d.heading) + '</h2>' +
         '<p class="cp-body-text">' + esc(d.body) + '</p>' +
         '<ul class="cp-points">' + (d.points || []).map(function (pt) { return '<li>' + esc(pt) + '</li>'; }).join('') + '</ul>' +
       '</div>' +
       '<section class="cp-tray" data-role="tray" aria-label="' + label + '">' +
         '<button type="button" class="cp-tray__handle" data-act="tray" aria-expanded="false" aria-controls="cp-tray-body">' +
           '<span class="cp-tray__grip" aria-hidden="true"></span>' +
-          '<span class="cp-tray__title"><span aria-hidden="true">⏱</span> ' + label + '</span>' +
+          '<span class="cp-tray__title"><span class="cp-tray__clock">' + ICON.clock + '</span>' + label + '</span>' +
           '<span class="cp-tray__peek" data-role="rest-peek"></span>' +
           '<span class="cp-tray__chev">' + ICON.chevronDown + '</span>' +
         '</button>' +

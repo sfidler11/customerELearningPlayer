@@ -602,3 +602,12 @@ a.cp-res:hover { background: var(--hover); border-color: var(--brand-border); }
 .cp--phone .cp-rest__status { text-align: center; min-height: 2.9em; margin-bottom: 8px; }
 .cp--phone .cp-rest__btns { justify-content: center; }
 @media (prefers-reduced-motion: reduce) { .cp-tray, .cp-tray__chev { transition: none; } .cp-rest__waffle.is-cooking .cp-rsteam { animation: none; } }
+
+.cp-h2--icon { display: flex; align-items: center; gap: 14px; }
+.cp-clock { flex: none; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: var(--brand-tint); border: 1px solid var(--brand-border); color: var(--brand-strong); }
+.cp-clock svg { width: 30px; height: 30px; }
+.cp-tray__title { display: inline-flex; align-items: center; gap: 8px; }
+.cp-tray__clock { display: inline-grid; width: 22px; height: 22px; }
+.cp-tray__clock svg { width: 22px; height: 22px; }
+.cp--phone .cp-clock { width: 40px; height: 40px; }
+.cp--phone .cp-clock svg { width: 24px; height: 24px; }
