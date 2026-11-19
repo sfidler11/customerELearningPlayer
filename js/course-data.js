@@ -48,7 +48,8 @@ window.COURSE_DATA = {
               icon: '🧇',
               description: 'The one special tool. Two heated grids close around the batter and cook it from both sides at once. Round or square, any shape works.',
               tip: 'Pick one with a ready light.',
-              imageLabel: 'photo: waffle iron open on the counter'
+              image: 'images/waffle-iron.jpg',
+              imageLabel: 'photo: a row of waffle irons with their grids open'
             },
             {
               name: 'Mixing bowls',
