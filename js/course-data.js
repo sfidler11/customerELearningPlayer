@@ -74,7 +74,8 @@ window.COURSE_DATA = {
               icon: '🥛',
               description: 'A ladle or a measuring cup pours the same amount of batter every time, so your waffles cook evenly.',
               tip: 'About three-quarters of a cup fills most irons.',
-              imageLabel: 'photo: ladle pouring batter into a measuring cup'
+              image: 'images/measuring-cup.jpg',
+              imageLabel: 'photo: a glass measuring cup'
             }
           ],
           narration: [
