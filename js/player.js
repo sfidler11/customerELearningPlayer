@@ -1201,7 +1201,7 @@
     return '<div class="cp-rest">' +
       '<div class="cp-rest__text">' +
         '<p class="cp-eyebrow">Page ' + n + ' · ' + esc(d.title) + '</p>' +
-        '<h2 class="cp-h2 cp-h2--icon"><span class="cp-clock">' + ICON.clock + '</span>' + esc(d.heading) + '</h2>' +
+        '<h2 class="cp-h2">' + esc(d.heading) + '</h2>' +
         '<p class="cp-body-text">' + esc(d.body) + '</p>' +
         '<ul class="cp-points">' + (d.points || []).map(function (pt) { return '<li>' + esc(pt) + '</li>'; }).join('') + '</ul>' +
       '</div>' +
