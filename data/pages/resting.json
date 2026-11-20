@@ -1,0 +1,33 @@
+{
+  "type": "timer",
+  "duration": 20,
+  "heading": "Give it five minutes",
+  "body": "A short rest lets the flour absorb the liquid and the bubbles form.",
+  "points": [
+    "Rest for 5 to 10 minutes",
+    "Heat the iron while you wait",
+    "Don't stir again before cooking"
+  ],
+  "timerMinutes": 5,
+  "timerLabel": "Click here to start a rest timer",
+  "labels": {
+    "start": "Start timer",
+    "pause": "Pause",
+    "resume": "Resume",
+    "restart": "Start again",
+    "reset": "Reset",
+    "done": "Done",
+    "left": "{time} left",
+    "statusIdle": "Press start when your batter is covered and resting.",
+    "statusRunning": "Resting. The batter is thickening and the bubbles are forming.",
+    "statusPaused": "Paused.",
+    "statusDone": "Time is up. Your batter is rested and ready to cook.",
+    "waffleLabel": "A waffle that browns as the timer runs",
+    "clockLabel": "A cartoon alarm clock"
+  },
+  "narration": [
+    "Let the batter rest for five to ten minutes.",
+    "This gives the flour time to absorb the milk and lets bubbles form.",
+    "Use the time to heat up your waffle iron."
+  ]
+}

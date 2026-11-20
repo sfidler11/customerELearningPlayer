@@ -1,0 +1,21 @@
+{
+  "type": "content",
+  "duration": 24,
+  "heading": "Watch the steam",
+  "body": "When the steam slows to a wisp, the waffle is ready.",
+  "points": [
+    "Most waffles take 3 to 5 minutes",
+    "Look for deep golden brown",
+    "Lift it out with a fork or tongs"
+  ],
+  "image": {
+    "src": "images/cooked-waffle.jpg",
+    "alt": "photo: a cooked waffle being lifted out of the open iron",
+    "position": "38% center"
+  },
+  "narration": [
+    "Most waffles take three to five minutes.",
+    "Watch the steam. When it slows down to a wisp, check the color.",
+    "You want a deep golden brown. Lift it out gently with a fork."
+  ]
+}

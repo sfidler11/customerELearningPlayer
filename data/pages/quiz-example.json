@@ -1,0 +1,42 @@
+{
+  "type": "quiz",
+  "duration": 15,
+  "heading": "Check your knowledge",
+  "question": "Why should you stop mixing while a few lumps remain?",
+  "multiple": false,
+  "image": {
+    "src": "images/mixing-ingredients.jpg",
+    "alt": "photo: whisking wet and dry ingredients together in a steel bowl",
+    "position": "center 55%"
+  },
+  "options": [
+    {
+      "text": "Overmixing makes waffles tough",
+      "correct": true,
+      "feedback": "Right. Extra stirring builds gluten, which makes the waffle chewy instead of light."
+    },
+    {
+      "text": "The lumps add flavor",
+      "correct": false,
+      "feedback": "Not quite. The lumps are plain flour, so they add no flavor. They melt away as the waffle cooks."
+    },
+    {
+      "text": "Lumpy batter cooks faster",
+      "correct": false,
+      "feedback": "Not quite. Lumps do not change the cooking time."
+    }
+  ],
+  "labels": {
+    "submit": "Check answer",
+    "retry": "Try again",
+    "correct": "Correct!",
+    "incorrect": "Not quite. Read the feedback and try again.",
+    "choose": "Select one answer.",
+    "chooseMany": "Select all that apply.",
+    "pickFirst": "Choose an answer first."
+  },
+  "narration": [
+    "Time for a quick check.",
+    "Choose the best answer, then select Check answer."
+  ]
+}

@@ -694,3 +694,46 @@ a.cp-res:hover { background: var(--hover); border-color: var(--brand-border); }
 .cp--phone .cp-bake__intro .cp-bk-step { font-size: 16px; }
 .cp--phone .cp-bake__intro .cp-bk-msg { font-size: 16px; }
 .cp--phone .cp-bake__intro .cp-bk-step__mark { width: 28px; height: 28px; font-size: 14px; }
+
+/* ---------- Hotspot page with its own picture ---------- */
+.cp-iron__img { border-radius: 12px; object-fit: contain; }
+
+/* ---------- Quiz ---------- */
+.cp-quiz { display: grid; grid-template-columns: 40% minmax(0, 1fr); gap: 40px; min-height: 100%; padding: 32px; box-sizing: border-box; }
+.cp-quiz--solo { grid-template-columns: minmax(0, 760px); justify-content: center; }
+.cp-quiz .cp-img { min-height: 260px; }
+.cp-quiz__main { align-self: safe center; }
+.cp-quiz__set { border: 0; margin: 0; padding: 0; min-width: 0; }
+.cp-quiz__q { padding: 0; margin: 0 0 6px; font-size: 21px; line-height: 1.35; font-weight: 700; color: var(--ink); }
+.cp-quiz__hint { margin: 0 0 14px; font-size: 14px; color: var(--muted); }
+.cp-quiz__opts { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.cp-quiz__opt { border: 2px solid var(--line-strong); border-radius: 12px; background: var(--surface); transition: border-color .15s, background .15s; }
+.cp-quiz__opt:not(.is-right):not(.is-wrong):has(input:checked) { border-color: var(--brand); background: var(--brand-tint); }
+.cp-quiz__opt.is-right { border-color: #1f7a3a; background: #EAF6EE; }
+.cp-quiz__opt.is-wrong { border-color: #B3261E; background: #FCECEB; }
+.cp-quiz__label { display: flex; align-items: center; gap: 12px; padding: 12px 14px; cursor: pointer; font-size: 17px; line-height: 1.4; color: var(--ink); }
+.cp-quiz__label input { flex: none; width: 20px; height: 20px; margin: 0; accent-color: var(--brand-strong); }
+.cp-quiz__label input:focus-visible { outline: 3px solid var(--brand-strong); outline-offset: 2px; }
+.cp-quiz__label:has(input:disabled) { cursor: default; }
+.cp-quiz__mark { flex: none; width: 22px; height: 22px; display: none; }
+.cp-quiz__mark svg { width: 100%; height: 100%; }
+.cp-quiz__opt.is-right .cp-quiz__mark, .cp-quiz__opt.is-wrong .cp-quiz__mark { display: block; }
+.cp-quiz__opt.is-right .cp-quiz__mark { color: #1f7a3a; }
+.cp-quiz__opt.is-wrong .cp-quiz__mark { color: #B3261E; }
+.cp-quiz__fb { margin: 0; padding: 0 14px 12px 46px; font-size: 15px; line-height: 1.5; color: var(--ink-2); }
+.cp-quiz__foot { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; margin-top: 18px; }
+.cp-quiz__result { margin: 0; font-size: 16px; font-weight: 700; color: var(--ink-2); }
+.cp-quiz__result.is-right { color: #1f7a3a; }
+.cp-quiz__result.is-wrong { color: #B3261E; }
+.cp--tablet .cp-quiz { gap: 28px; padding: 24px; }
+.cp--phone .cp-quiz { grid-template-columns: 1fr; gap: 16px; padding: 16px; align-content: start; }
+.cp--phone .cp-quiz .cp-img { display: none; }
+.cp--phone .cp-quiz__q { font-size: 18px; }
+.cp--phone .cp-quiz__label { font-size: 15px; padding: 10px 12px; }
+.cp--short .cp-quiz { padding: 24px; }
+
+/* ---------- Loading and load errors (before the player exists) ---------- */
+.cp-loading { box-sizing: border-box; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 24px; text-align: center; font-family: "Public Sans", Helvetica, Arial, sans-serif; color: #4A4540; background: #F7F6F4; }
+.cp-loading h1 { margin: 0; font-size: 22px; color: #1E1C1A; }
+.cp-loading p { margin: 0; max-width: 60ch; line-height: 1.5; }
+.cp-loading code { font-family: "IBM Plex Mono", ui-monospace, monospace; background: #EDE9E4; padding: 1px 6px; border-radius: 4px; }

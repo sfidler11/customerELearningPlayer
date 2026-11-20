@@ -1,0 +1,19 @@
+{
+  "type": "completion",
+  "duration": 18,
+  "heading": "You did it! Course completed.",
+  "thanks": "Thank you for taking {courseTitle}. We hope you had fun, and that your next batch is your best yet.",
+  "pendingHeading": "Almost there",
+  "pendingBody": "Finish every page to complete the course.",
+  "labels": {
+    "close": "Close Course",
+    "progress": "You have finished {done} of {total} pages. Still to finish:",
+    "module": "Module {number} · {title}",
+    "pageLink": "Page {number}: {title}"
+  },
+  "narration": [
+    "Congratulations. You have finished {courseTitle}.",
+    "Thank you for learning with us. We hope you enjoyed it.",
+    "Now go make some waffles."
+  ]
+}

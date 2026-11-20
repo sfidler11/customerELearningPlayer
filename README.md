@@ -24,14 +24,15 @@ Preview options can be passed as query parameters, for example `?viewport=phone&
 | `css/page.css` | Makes the player fill the window on `index.html`. |
 | `resources/` | The PDFs and PowerPoint files offered in the "Course resources" pop-up. |
 | `js/player.js` | The player shell: header, course menu, content region, section progress, captions, control bar, toast, exit dialog. |
-| `js/course-data.js` | Course content. Swap this file to build a new course. |
+| `data/menu.json` | The course: title, modules and the page list. |
+| `data/pages/*.json` | One file per page: its type and all of its content. See [data/README.md](data/README.md). |
 | `js/main.js` | Mounts the player on `index.html` and reads preview options from the URL. |
 | `docs/style-guide.html` | The style and behavior guide the player implements. |
 
 ## Using the player
 
 ```js
-new CoursePlayer(element, window.COURSE_DATA, {
+CoursePlayer.load(element, 'data/menu.json', {
   viewport: 'auto',   // 'auto' | 'desktop' | 'tablet' | 'phone'
   menuOpen: false,
   captionsOn: false,
@@ -41,30 +42,24 @@ new CoursePlayer(element, window.COURSE_DATA, {
   height: null,       // e.g. 720 or '80vh'; defaults to filling the container
   persist: true,      // save progress to localStorage
   onDownload: function (file) {},  // optional: return true to handle a resource download yourself ({ url, filename })
-  onClose: function (info) {}  // called when the learner presses Close Course on the completion page (e.g. tell the LMS)
-});
+  onClose: function (info) {},  // called when the learner presses Close Course on the completion page (e.g. tell the LMS)
+  files: null         // optional: the JSON already parsed, keyed by path, for hosts that cannot fetch files
+}).then(function (player) { /* ready */ });
 ```
+
+`CoursePlayer.load` fetches `menu.json` and every page file it lists (paths are relative to the menu file), then starts the player. If a file is missing or is not valid JSON, the player shows which one. `new CoursePlayer(element, course, options)` still works with a course object you have built yourself.
 
 The layout mode comes from the player's own width (desktop ≥ 1024px, tablet 640–1023px, phone < 640px), and "short" mode applies under 700px tall.
 
-## Course data
+## Course content
 
-`COURSE_DATA` has a `title`, a `storageKey` for saved progress, and `modules`, each with a `title` and `pages`. Every page has a `title`, a narration `duration` in seconds, `narration` sentences for the captions panel, and a `template`:
+All content lives in JSON under `data/`, described in full in [data/README.md](data/README.md):
 
-- `title`: full-bleed title page. Fields: `eyebrow`, `lede`, `meta`, `image`, `imageLabel`.
-- `content`: image and text slide. Fields: `heading`, `body`, `points`, `image`, `imageLabel`, optional `imagePosition`.
-- `tabs`: intro plus a row of tabs. Selecting a tab opens its panel, and selecting it again closes it. Fields: `heading`, `lede`, `items` (`name`, `description`, `tip`, `image`, `imageLabel`, and optional `imagePosition`, a CSS object-position such as `center 70%` to choose which part of the photo stays in view).
-- `completion`: the last page. Shows `heading` and `thanks` with confetti once every page is complete, and `pendingHeading` and `pendingBody` until then. Confetti is skipped when the visitor prefers reduced motion.
-- `iron`: text slide with a waffle iron card that opens a modal. Pins on the drawing, a list and a power switch explain each part; each explored part gets a check mark. Fields: `heading`, `body`, `points`, `exploreLabel`, `modalTitle`, `parts` (`handle`, `top`, `bottom`, `light`, `switch`, each with `name` and `text`).
-- `rest`: text slide with a bottom tray that slides up to show a countdown timer and a waffle that browns as time runs out. Fields: `heading`, `body`, `points`, `timerMinutes` (default 5), `timerLabel`.
-- `bake`: hands-on activity. The learner sets an oven dial to `targetTemp`, moves `waffleCount` waffles from the waffle iron to a tray (drag, or tap or press Enter on a waffle), then slides the tray into the oven (drag the tray, or use the button). Fields: `heading`, `body`, `steps` (three step labels), `targetTemp`, `waffleCount`, `doneText`.
-- `slider`: horizontal accordion. Sections sit side by side as colored title strips, and selecting one slides it open to show its text. Fields: `heading`, `lede`, `items` (`name`, `kind` for a small label such as Sweet, `icon`, `description`, `tip`, and `color`: `amber`, `berry`, `green` or `blue`).
-- `accordion`: intro plus expandable list. Fields: `heading`, `lede`, `items` (`name`, `description`, `amount`), and either `icons` (a row of tiles, each `{ icon, label }` for an emoji or `{ src, label }` for a drawn image) or `image` and `imageLabel` for a photo.
+- `data/menu.json` holds the course title, the modules, and each page's `number`, `title` and `file`. The menu, page order and page numbers are built from it, so reordering or adding entries there reorganizes the course.
+- `data/pages/<page>.json` holds one page: its `type` and everything it shows, including text, list items, quiz answers, image paths, narration and the wording of its buttons.
 
-`COURSE_DATA.resources` lists the documents behind the document icon in the header: each has a `title`, a `type` (`'pdf'` or `'pptx'`), a `url` and an optional `description`. An entry with an empty `url` shows as "Coming soon". Keep the files in the `resources/` folder (see its README) and add one entry per file.
+Page types: `title`, `content`, `tabs`, `accordion`, `slider`, `hotspots`, `timer`, `bake`, `quiz` and `completion`. Any type can be used for as many pages as you like.
 
-Leave `image` empty to show the striped placeholder with `imageLabel`, or set it to an image URL.
-
-To add a template, add a `tpl…` method in `js/player.js`, call it from `renderPage`, and give it desktop, tablet, phone and short-height styles (see §8.4 of the style guide).
+To add a page type, add a `tpl…` method in `js/player.js`, register it in `TEMPLATES`, document its fields in `data/README.md`, and give it desktop, tablet, phone and short-height styles (see §8.4 of the style guide).
 
 Narration is simulated with a one-second timer, as in the design. A page counts as complete when its narration plays to the end.

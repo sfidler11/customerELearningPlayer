@@ -1,0 +1,69 @@
+{
+  "type": "accordion",
+  "duration": 30,
+  "heading": "Six ingredients do the work",
+  "lede": "Open each ingredient to see what it does and how much you need.",
+  "icons": [
+    {
+      "icon": "🌾",
+      "label": "Flour"
+    },
+    {
+      "src": "images/baking-powder.svg",
+      "label": "Baking powder"
+    },
+    {
+      "icon": "🥚",
+      "label": "Eggs"
+    },
+    {
+      "icon": "🥛",
+      "label": "Milk"
+    },
+    {
+      "icon": "🧈",
+      "label": "Butter"
+    }
+  ],
+  "labels": {
+    "detail": "Typical amount:"
+  },
+  "items": [
+    {
+      "name": "Flour",
+      "description": "Gives the waffle its structure. All-purpose flour works best.",
+      "detail": "2 cups"
+    },
+    {
+      "name": "Baking powder",
+      "description": "Makes the batter rise so the inside stays light and fluffy.",
+      "detail": "1 tablespoon"
+    },
+    {
+      "name": "Eggs",
+      "description": "Bind everything together and add richness.",
+      "detail": "2 large"
+    },
+    {
+      "name": "Milk",
+      "description": "Thins the batter so it spreads into every pocket.",
+      "detail": "1¾ cups"
+    },
+    {
+      "name": "Melted butter",
+      "description": "Adds flavor and helps the outside turn crisp.",
+      "detail": "½ cup"
+    },
+    {
+      "name": "Sugar and salt",
+      "description": "A little of each balances the flavor and helps browning.",
+      "detail": "2 tablespoons sugar, ½ teaspoon salt"
+    }
+  ],
+  "narration": [
+    "Great waffles start with just six ingredients.",
+    "Flour and baking powder give the waffle its shape and lift.",
+    "Eggs, milk, and butter add richness and help the outside crisp.",
+    "A little sugar and salt round out the flavor."
+  ]
+}

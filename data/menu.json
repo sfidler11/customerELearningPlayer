@@ -1,0 +1,90 @@
+{
+  "title": "Waffles 101",
+  "storageKey": "waffles101-player",
+  "pageLabel": "Page {number} · {title}",
+  "resources": [
+    {
+      "title": "Waffles job aid",
+      "type": "pdf",
+      "url": "resources/Waffles_Job_Aid.pdf",
+      "description": "Classic Golden Waffles: ingredients and method"
+    }
+  ],
+  "modules": [
+    {
+      "title": "Getting started",
+      "pages": [
+        {
+          "number": 1,
+          "title": "Welcome",
+          "file": "pages/welcome.json"
+        },
+        {
+          "number": 2,
+          "title": "Your waffle toolkit",
+          "file": "pages/waffle-toolkit.json"
+        },
+        {
+          "number": 3,
+          "title": "How a waffle iron works",
+          "file": "pages/waffle-iron.json"
+        }
+      ]
+    },
+    {
+      "title": "The batter",
+      "pages": [
+        {
+          "number": 4,
+          "title": "Core ingredients",
+          "file": "pages/core-ingredients.json"
+        },
+        {
+          "number": 5,
+          "title": "Mixing wet and dry",
+          "file": "pages/mixing.json"
+        },
+        {
+          "number": 6,
+          "title": "Resting the batter",
+          "file": "pages/resting.json"
+        }
+      ]
+    },
+    {
+      "title": "Cooking",
+      "pages": [
+        {
+          "number": 7,
+          "title": "Pouring the right amount",
+          "file": "pages/pouring.json"
+        },
+        {
+          "number": 8,
+          "title": "Knowing when it's done",
+          "file": "pages/doneness.json"
+        }
+      ]
+    },
+    {
+      "title": "Serving",
+      "pages": [
+        {
+          "number": 9,
+          "title": "Keeping waffles warm until they're all ready",
+          "file": "pages/keeping-warm.json"
+        },
+        {
+          "number": 10,
+          "title": "Toppings and pairings",
+          "file": "pages/toppings.json"
+        },
+        {
+          "number": 11,
+          "title": "You did it",
+          "file": "pages/completion.json"
+        }
+      ]
+    }
+  ]
+}

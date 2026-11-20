@@ -1,0 +1,21 @@
+{
+  "type": "content",
+  "duration": 24,
+  "heading": "Pour into the center",
+  "body": "The batter spreads as the lid closes, so start with less than you think.",
+  "points": [
+    "Pour into the middle of the grid",
+    "Leave the edges about an inch clear",
+    "Close the lid right away"
+  ],
+  "image": {
+    "src": "images/pouring-batter.jpg",
+    "alt": "photo: pouring batter from a funnel into the heated molds of a waffle iron",
+    "position": "center 72%"
+  },
+  "narration": [
+    "Pour the batter into the center of the iron.",
+    "Leave about an inch clear around the edges, because it spreads as you close the lid.",
+    "Close the lid right away and let it cook."
+  ]
+}

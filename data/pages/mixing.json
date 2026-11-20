@@ -1,0 +1,21 @@
+{
+  "type": "content",
+  "duration": 28,
+  "heading": "Mix gently and stop early",
+  "body": "A few lumps are fine. Overmixing makes waffles tough.",
+  "points": [
+    "Whisk the dry ingredients in one bowl",
+    "Whisk the wet ingredients in the other",
+    "Pour wet into dry and fold until just combined"
+  ],
+  "image": {
+    "src": "images/mixing-ingredients.jpg",
+    "alt": "photo: whisking wet and dry ingredients together in a steel bowl",
+    "position": "center 55%"
+  },
+  "narration": [
+    "Mix your dry ingredients in one bowl and your wet ingredients in another.",
+    "Pour the wet into the dry and fold gently with a spatula.",
+    "Stop as soon as you no longer see dry flour. A few lumps are a good sign."
+  ]
+}
