@@ -1,0 +1,40 @@
+{
+  "type": "bake",
+  "duration": 22,
+  "heading": "Keep them off the plate",
+  "body": "Stacking traps steam and softens the crust. Hold finished waffles on a tray in a low oven while you cook the rest.",
+  "targetTemp": 200,
+  "waffleCount": 5,
+  "dial": {
+    "min": 0,
+    "max": 450,
+    "step": 25
+  },
+  "steps": [
+    "Turn the oven on to 200°F",
+    "Move 5 waffles from the waffle iron to the tray",
+    "Slide the tray into the oven"
+  ],
+  "doneText": "Nicely done! The waffles stay warm and crisp until you are ready to serve.",
+  "labels": {
+    "ironTitle": "Waffle iron",
+    "trayTitle": "Tray",
+    "ovenTitle": "Oven",
+    "trayCount": "{moved} of {count} waffles on the tray",
+    "trayInOven": "The tray is in the oven.",
+    "slideTray": "Slide tray into oven",
+    "dial": "Oven temperature",
+    "off": "Off",
+    "tempFormat": "{temp}°F",
+    "reset": "Start over",
+    "moveWaffle": "Move a waffle to the tray ({left} left on the iron)",
+    "wrongTemp": "Keep-warm temperature is {target}°F. Adjust the dial.",
+    "needOn": "Turn the oven on to {target}°F first.",
+    "needTemp": "The oven needs to be at {target}°F first."
+  },
+  "narration": [
+    "Fresh waffles turn soft if you stack them.",
+    "Set them on a wire rack in a low oven while you finish the batch.",
+    "Stack them only when you are ready to serve."
+  ]
+}

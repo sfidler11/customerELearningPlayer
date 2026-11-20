@@ -1,0 +1,19 @@
+{
+  "type": "title",
+  "duration": 18,
+  "eyebrow": "Hello and welcome to...",
+  "lede": "In this short course you'll learn how to mix, cook, and serve crisp, golden waffles at home.",
+  "meta": "{pageCount} pages · {moduleCount} modules · no experience needed",
+  "image": {
+    "src": "images/plated-waffles.jpg",
+    "alt": "photo: plated waffles with strawberries and grapes on a red placemat"
+  },
+  "labels": {
+    "start": "Start the course"
+  },
+  "narration": [
+    "Hello and welcome to {courseTitle}.",
+    "Over the next {pageCount} pages you'll learn everything you need to make great waffles at home.",
+    "Press Start the course when you are ready."
+  ]
+}

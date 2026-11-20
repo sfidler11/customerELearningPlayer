@@ -1,7 +1,11 @@
 /*
  * Course Player shell. Behavior follows docs/style-guide.html.
  *
- *   const player = new CoursePlayer(document.getElementById('app'), window.COURSE_DATA, {
+ * Content lives in JSON under data/ (see data/README.md):
+ *   data/menu.json          course title, modules and the page list (title, number, file)
+ *   data/pages/<page>.json  one file per page: its type and everything it shows
+ *
+ *   CoursePlayer.load(document.getElementById('app'), 'data/menu.json', {
  *     viewport: 'auto',   // 'auto' | 'desktop' | 'tablet' | 'phone'
  *     menuOpen: false,
  *     captionsOn: false,  // default comes from the session setting
@@ -9,8 +13,11 @@
  *     initialPage: 1,     // 1-based; overrides saved progress
  *     initialTime: 0,     // seconds into the initial page
  *     height: null,       // CSS height for the player; defaults to filling its container
- *     persist: true       // save progress to localStorage
- *   });
+ *     persist: true,      // save progress to localStorage
+ *     files: null         // optional { 'data/menu.json': {...}, ... } to skip fetching
+ *   }).then(function (player) { ... });
+ *
+ * new CoursePlayer(root, course, options) still works with an already-built course object.
  */
 (function () {
   'use strict';
@@ -92,9 +99,46 @@
 
   // pos (optional) is a CSS object-position such as 'center 70%' for choosing which part of a photo stays in view.
   function imageSlot(src, label, pos) {
+    // An image can also be given as one object: { src, alt, position }.
+    if (src && typeof src === 'object') { label = src.alt != null ? src.alt : label; pos = src.position || pos; src = src.src; }
     return '<div class="cp-img">' +
       (src ? '<img src="' + esc(src) + '" alt="' + esc(label) + '"' + (pos ? ' style="object-position:' + esc(pos) + '"' : '') + '>' : '<span class="cp-img__label">' + esc(label) + '</span>') +
       '</div>';
+  }
+
+  // Fills {name} placeholders from vars. Unknown names are left as they are.
+  function tx(str, vars) {
+    return String(str == null ? '' : str).replace(/\{(\w+)\}/g, function (m, k) {
+      return vars && vars[k] != null ? vars[k] : m;
+    });
+  }
+
+  // A page's own wording for a built-in label (page.labels[key]), or the fallback.
+  function lbl(d, key, fallback, vars) {
+    var v = d.labels && d.labels[key] != null ? d.labels[key] : fallback;
+    return tx(v, vars);
+  }
+
+  function points(list) {
+    return '<ul class="cp-points">' + (list || []).map(function (pt) { return '<li>' + esc(pt) + '</li>'; }).join('') + '</ul>';
+  }
+
+  // Page types and the method that draws each. Older names still work.
+  var TEMPLATES = {
+    title: 'tplTitle', content: 'tplContent', accordion: 'tplAccordion', tabs: 'tplTabs',
+    slider: 'tplSlider', hotspots: 'tplIron', timer: 'tplRest', bake: 'tplBake',
+    quiz: 'tplQuiz', completion: 'tplCompletion'
+  };
+  var TYPE_ALIAS = { iron: 'hotspots', rest: 'timer' };
+
+  function pageType(d) {
+    var t = d.type || d.template || 'content';
+    t = TYPE_ALIAS[t] || t;
+    if (!TEMPLATES[t]) {
+      if (window.console) console.warn('Course player: unknown page type "' + t + '" on "' + d.title + '", showing it as a content page.');
+      t = 'content';
+    }
+    return t;
   }
 
   function CoursePlayer(root, course, options) {
@@ -114,7 +158,10 @@
     var self = this;
     course.modules.forEach(function (mod, m) {
       mod.pages.forEach(function (page) {
-        self.pages.push({ data: page, module: m, index: self.pages.length });
+        page.template = pageType(page);
+        page.duration = Number(page.duration) || 1;
+        var i = self.pages.length;
+        self.pages.push({ data: page, module: m, index: i, id: page.id != null ? String(page.id) : String(i) });
       });
     });
 
@@ -134,9 +181,7 @@
       visited: new Set(saved ? saved.visited : []),
       completed: new Set(saved ? saved.completed : []),
       openItem: 0,
-      ironSeen: new Set(),
-      rest: { left: null, running: false, end: 0 },
-      bake: { temp: 0, moved: 0, inOven: false, fresh: false },
+      pageData: {},
       mode: 'desktop',
       short: false,
       exited: false
@@ -150,15 +195,27 @@
     if (opts.showToast) this.showToast();
   }
 
+  // Progress is saved by page id, so reordering pages in menu.json keeps each page's
+  // status. Plain numbers (saved before ids existed) are read as page positions.
   CoursePlayer.prototype.load = function () {
     var raw = readStorage(window.localStorage, this.course.storageKey);
     if (!raw) return null;
+    var pages = this.pages;
+    var toIdx = function (v) {
+      if (typeof v === 'number') return v >= 0 && v < pages.length ? v : -1;
+      for (var i = 0; i < pages.length; i++) if (pages[i].id === v) return i;
+      return -1;
+    };
+    var list = function (arr) {
+      return (Array.isArray(arr) ? arr : []).map(toIdx).filter(function (i) { return i >= 0; });
+    };
     try {
       var data = JSON.parse(raw);
+      var idx = toIdx(data.page != null ? data.page : data.idx);
       return {
-        idx: typeof data.idx === 'number' ? data.idx : 0,
-        visited: Array.isArray(data.visited) ? data.visited : [],
-        completed: Array.isArray(data.completed) ? data.completed : []
+        idx: idx >= 0 ? idx : 0,
+        visited: list(data.visited),
+        completed: list(data.completed)
       };
     } catch (e) {
       return null;
@@ -167,12 +224,27 @@
 
   CoursePlayer.prototype.save = function () {
     if (!this.opts.persist) return;
-    var s = this.state;
+    var s = this.state, pages = this.pages;
+    var ids = function (set) { return Array.from(set).map(function (i) { return pages[i].id; }); };
     writeStorage(window.localStorage, this.course.storageKey, JSON.stringify({
-      idx: s.idx,
-      visited: Array.from(s.visited),
-      completed: Array.from(s.completed)
+      page: pages[s.idx].id,
+      visited: ids(s.visited),
+      completed: ids(s.completed)
     }));
+  };
+
+  // State an interactive page keeps while the learner moves around the course,
+  // one object per page so two pages of the same type never share it.
+  CoursePlayer.prototype.pageState = function (init) {
+    var bag = this.state.pageData;
+    var idx = this.state.idx;
+    if (!bag[idx]) bag[idx] = init();
+    return bag[idx];
+  };
+
+  // The small line above each page heading, e.g. "Page 4 · Core ingredients".
+  CoursePlayer.prototype.eyebrow = function (d, n) {
+    return '<p class="cp-eyebrow">' + esc(lbl(d, 'eyebrow', this.course.pageLabel || 'Page {number} · {title}', { number: n, title: d.title })) + '</p>';
   };
 
   /* ---------- Build the static shell once ---------- */
@@ -319,6 +391,8 @@
         case 'rest-reset': self.restReset(); break;
         case 'iron-part': self.ironPart(target.getAttribute('data-part')); break;
         case 'iron-switch': self.ironSwitch(); break;
+        case 'quiz-submit': self.quizSubmit(); break;
+        case 'quiz-retry': self.quizRetry(); break;
         case 'resume': self.resume(); break;
       }
     });
@@ -610,7 +684,7 @@
     this.slots.overlay.removeEventListener('keydown', this.trap);
     this.slots.overlay.innerHTML = '';
     this.setInert(false);
-    this.updateIronCard();
+    if (this.page().data.template === 'hotspots') this.updateIronCard();
     if (this.lastFocus && this.lastFocus.focus) this.lastFocus.focus();
   };
 
@@ -853,15 +927,7 @@
     var region = this.slots.region;
     region.setAttribute('aria-label', 'Page ' + n + ': ' + d.title);
     region.scrollTop = 0;
-    if (d.template === 'title') region.innerHTML = this.tplTitle(d);
-    else if (d.template === 'accordion') region.innerHTML = this.tplAccordion(d, n);
-    else if (d.template === 'tabs') region.innerHTML = this.tplTabs(d, n);
-    else if (d.template === 'bake') { region.innerHTML = this.tplBake(d, n); this.bakeBind(); }
-    else if (d.template === 'rest') region.innerHTML = this.tplRest(d, n);
-    else if (d.template === 'iron') region.innerHTML = this.tplIron(d, n);
-    else if (d.template === 'slider') region.innerHTML = this.tplSlider(d, n);
-    else if (d.template === 'completion') region.innerHTML = this.tplCompletion(d);
-    else region.innerHTML = this.tplContent(d, n);
+    region.innerHTML = this[TEMPLATES[d.template] || 'tplContent'](d, n);
 
     var counters = this.el.querySelectorAll('[data-role=counter]');
     for (var i = 0; i < counters.length; i++) counters[i].textContent = n + ' of ' + total;
@@ -875,8 +941,8 @@
     void bar.offsetWidth;
     bar.classList.remove('cp-no-anim');
 
-    this.updateIronCard();
-    this.restPaint();
+    if (d.template === 'hotspots') this.updateIronCard();
+    if (d.template === 'timer') this.restPaint();
     if (d.template === 'bake') this.bakeRender();
     this.fitCompletion();
     this.fitPage();
@@ -887,14 +953,14 @@
 
   CoursePlayer.prototype.tplTitle = function (d) {
     return '<div class="cp-hero">' +
-      imageSlot(d.image, d.imageLabel) +
+      imageSlot(d.image, d.imageLabel, d.imagePosition) +
       '<div class="cp-hero__scrim"></div>' +
       '<div class="cp-hero__text">' +
-        '<p class="cp-hero__eyebrow">' + esc(d.eyebrow) + '</p>' +
-        '<h2 class="cp-hero__title">' + esc(this.course.title) + '</h2>' +
-        '<p class="cp-hero__lede">' + esc(d.lede) + '</p>' +
+        (d.eyebrow ? '<p class="cp-hero__eyebrow">' + esc(d.eyebrow) + '</p>' : '') +
+        '<h2 class="cp-hero__title">' + esc(d.heading || this.course.title) + '</h2>' +
+        (d.lede ? '<p class="cp-hero__lede">' + esc(d.lede) + '</p>' : '') +
         (d.meta ? '<p class="cp-hero__meta">' + esc(d.meta) + '</p>' : '') +
-        '<button type="button" class="cp-btn cp-btn--primary" data-act="start">Start the course' + ICON.arrow + '</button>' +
+        '<button type="button" class="cp-btn cp-btn--primary" data-act="start">' + esc(lbl(d, 'start', 'Start the course')) + ICON.arrow + '</button>' +
       '</div>' +
     '</div>';
   };
@@ -903,19 +969,22 @@
     return '<div class="cp-slide">' +
       imageSlot(d.image, d.imageLabel, d.imagePosition) +
       '<div class="cp-slide__text">' +
-        '<p class="cp-eyebrow">Page ' + n + ' · ' + esc(d.title) + '</p>' +
+        this.eyebrow(d, n) +
         '<h2 class="cp-h2">' + esc(d.heading) + '</h2>' +
-        '<p class="cp-body-text">' + esc(d.body) + '</p>' +
-        '<ul class="cp-points">' + (d.points || []).map(function (pt) { return '<li>' + esc(pt) + '</li>'; }).join('') + '</ul>' +
+        (d.body ? '<p class="cp-body-text">' + esc(d.body) + '</p>' : '') +
+        points(d.points) +
       '</div>' +
     '</div>';
   };
 
   CoursePlayer.prototype.tplAccordion = function (d, n) {
     var open = this.state.openItem;
+    var detailLabel = lbl(d, 'detail', 'Typical amount:');
     var items = (d.items || []).map(function (it, i) {
       var isOpen = i === open;
       var id = 'cp-acc-' + n + '-' + i;
+      var detail = it.detail != null ? it.detail : it.amount;
+      var dl = it.detailLabel != null ? it.detailLabel : detailLabel;
       return '<div class="cp-acc-item' + (isOpen ? ' is-open' : '') + '">' +
         '<h3><button type="button" class="cp-acc-btn" id="' + id + '-btn" data-act="acc" data-item="' + i + '" aria-expanded="' + isOpen + '" aria-controls="' + id + '">' +
           '<span class="cp-acc-num" aria-hidden="true">' + (i + 1) + '</span>' +
@@ -924,13 +993,13 @@
         '</button></h3>' +
         '<div class="cp-acc-panel" id="' + id + '" role="region" aria-labelledby="' + id + '-btn"><div>' +
           '<p>' + esc(it.description) + '</p>' +
-          '<p><strong>Typical amount:</strong> ' + esc(it.amount) + '</p>' +
+          (detail != null && detail !== '' ? '<p>' + (dl ? '<strong>' + esc(dl) + '</strong> ' : '') + esc(detail) + '</p>' : '') +
         '</div></div>' +
       '</div>';
     }).join('');
     return '<div class="cp-acc-slide">' +
       '<div class="cp-acc-intro">' +
-        '<p class="cp-eyebrow">Page ' + n + ' · ' + esc(d.title) + '</p>' +
+        this.eyebrow(d, n) +
         '<h2 class="cp-h2">' + esc(d.heading) + '</h2>' +
         '<p class="cp-body-text">' + esc(d.lede) + '</p>' +
         (d.icons && d.icons.length ? iconGrid(d.icons) : imageSlot(d.image, d.imageLabel)) +
@@ -947,11 +1016,12 @@
   CoursePlayer.prototype.tplCompletion = function (d) {
     var s = this.state;
     if (this.courseDone()) {
+      var art = d.image ? '<img class="cp-waffle-art" src="' + esc(d.image.src || d.image) + '" alt="' + esc(d.image.alt || '') + '">' : WAFFLE_ART;
       return '<div class="cp-done">' +
-        WAFFLE_ART +
+        art +
         '<h2 class="cp-done__title">' + esc(d.heading) + '</h2>' +
         '<p class="cp-done__text">' + esc(d.thanks) + '</p>' +
-        '<button type="button" class="cp-btn cp-btn--primary cp-done__close" data-act="close-course">Close Course</button>' +
+        '<button type="button" class="cp-btn cp-btn--primary cp-done__close" data-act="close-course">' + esc(lbl(d, 'close', 'Close Course')) + '</button>' +
       '</div>';
     }
     var groups = '';
@@ -960,20 +1030,22 @@
       for (var i = 0; i < this.pages.length; i++) {
         var pg = this.pages[i];
         if (pg.module !== m || s.completed.has(i) || i === s.idx) continue;
-        links += '<li><button type="button" class="cp-link" data-act="goto" data-idx="' + i + '">Page ' + (i + 1) + ': ' + esc(pg.data.title) + '</button></li>';
+        links += '<li><button type="button" class="cp-link" data-act="goto" data-idx="' + i + '">' + esc(lbl(d, 'pageLink', 'Page {number}: {title}', { number: i + 1, title: pg.data.title })) + '</button></li>';
       }
-      if (links) groups += '<div class="cp-todo__group"><h3 class="cp-todo__module">Module ' + (m + 1) + ' · ' + esc(this.course.modules[m].title) + '</h3><ul class="cp-todo">' + links + '</ul></div>';
+      if (links) groups += '<div class="cp-todo__group"><h3 class="cp-todo__module">' + esc(lbl(d, 'module', 'Module {number} · {title}', { number: m + 1, title: this.course.modules[m].title })) + '</h3><ul class="cp-todo">' + links + '</ul></div>';
     }
     if (groups) groups = '<div class="cp-todo__cols">' + groups + '</div>';
+    var progress = lbl(d, 'progress', 'You have finished {done} of {total} pages. Still to finish:', { done: s.completed.size, total: this.pages.length });
     return '<div class="cp-done cp-done--pending">' +
       '<h2 class="cp-done__title">' + esc(d.pendingHeading) + '</h2>' +
-      '<p class="cp-done__text">' + esc(d.pendingBody) + ' You have finished ' + s.completed.size + ' of ' + this.pages.length + ' pages. Still to finish:</p>' +
+      '<p class="cp-done__text">' + esc([d.pendingBody, progress].filter(Boolean).join(' ')) + '</p>' +
       groups +
     '</div>';
   };
 
   CoursePlayer.prototype.tplSlider = function (d, n) {
     var open = this.state.openItem;
+    var tipLabel = lbl(d, 'tip', 'Try it with:');
     var secs = (d.items || []).map(function (it, i) {
       var isOpen = i === open;
       var id = 'cp-hs-' + n + '-' + i;
@@ -986,28 +1058,26 @@
           '<span class="cp-hs__kind">' + esc(it.kind || '') + '</span>' +
           '<h3 class="cp-hs__heading">' + esc(it.name) + '</h3>' +
           '<p>' + esc(it.description) + '</p>' +
-          (it.tip ? '<p><strong>Try it with:</strong> ' + esc(it.tip) + '</p>' : '') +
+          (it.tip ? '<p>' + (tipLabel ? '<strong>' + esc(tipLabel) + '</strong> ' : '') + esc(it.tip) + '</p>' : '') +
         '</div></div>' +
       '</section>';
     }).join('');
     return '<div class="cp-hs-slide">' +
       '<div class="cp-hs-intro">' +
-        '<p class="cp-eyebrow">Page ' + n + ' · ' + esc(d.title) + '</p>' +
+        this.eyebrow(d, n) +
         '<h2 class="cp-h2">' + esc(d.heading) + '</h2>' +
-        '<p class="cp-body-text">' + esc(d.lede) + '</p>' +
+        (d.lede ? '<p class="cp-body-text">' + esc(d.lede) + '</p>' : '') +
       '</div>' +
       '<div class="cp-hs-row">' + secs + '</div>' +
     '</div>';
   };
 
 
-  // ---------- Waffle iron explorer (modal with clickable parts) ----------
-  var IRON_PARTS = ['handle', 'top', 'bottom', 'light', 'switch'];
-  // Pin positions as a percentage of the 400 x 300 drawing.
-  var IRON_PINS = { handle: [50, 6], top: [50, 27], bottom: [50, 60], light: [27.5, 68.5] };
-
-  function ironSvg() {
-    return '<svg class="cp-iron__svg" viewBox="0 0 400 300" role="img" aria-label="Drawing of an open waffle iron" focusable="false">' +
+  // ---------- Hotspot explorer (modal with clickable numbered parts) ----------
+  // Built for the waffle iron drawing, but any picture works: give the page an image
+  // and place each part's pin with { x, y } as a percentage of the picture.
+  function ironSvg(label) {
+    return '<svg class="cp-iron__svg" viewBox="0 0 400 300" role="img" aria-label="' + esc(label) + '" focusable="false">' +
       '<defs>' +
         '<pattern id="cp-grid" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="#9aa0a8"/><rect x="2" y="2" width="10" height="10" rx="2" fill="#5d636b"/></pattern>' +
         '<linearGradient id="cp-body" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b3f45"/><stop offset="1" stop-color="#23262a"/></linearGradient>' +
@@ -1035,19 +1105,41 @@
     '</svg>';
   }
 
+  // The picture for the hotspot page: the page's own image, or the built-in waffle iron drawing.
+  function hotspotArt(d) {
+    var label = lbl(d, 'art', 'Drawing of an open waffle iron');
+    if (d.image) return '<img class="cp-iron__svg cp-iron__img" src="' + esc(d.image.src || d.image) + '" alt="' + esc(d.image.alt != null ? d.image.alt : label) + '">';
+    return ironSvg(label);
+  }
+
+  // Every part as { id, name, text, pin }, plus the switch (when the page has one) last.
+  CoursePlayer.prototype.ironParts = function (d) {
+    var list = (d.parts || []).map(function (p, i) {
+      return { id: String(p.id || 'part-' + (i + 1)), name: p.name || '', text: p.text || '', pin: p.pin || null, tip: p.tip || '' };
+    });
+    if (d['switch']) {
+      var sw = d['switch'];
+      list.push({ id: 'switch', name: sw.name || '', text: sw.text || '', tip: sw.tip || '', heating: sw.heatingText || '', pin: sw.pin || null, isSwitch: true });
+    }
+    return list;
+  };
+
+  CoursePlayer.prototype.ironSeen = function () {
+    return this.pageState(function () { return { seen: new Set() }; }).seen;
+  };
+
   CoursePlayer.prototype.tplIron = function (d, n) {
-    var total = IRON_PARTS.length;
     return '<div class="cp-slide cp-slide--iron">' +
       '<div class="cp-iron-card">' +
-        '<div class="cp-iron-card__art">' + ironSvg() + '</div>' +
-        '<button type="button" class="cp-btn cp-btn--primary cp-iron-card__btn" data-act="iron-open">' + esc(d.exploreLabel || 'Explore the waffle iron') + '</button>' +
+        '<div class="cp-iron-card__art">' + hotspotArt(d) + '</div>' +
+        '<button type="button" class="cp-btn cp-btn--primary cp-iron-card__btn" data-act="iron-open">' + esc(d.exploreLabel || lbl(d, 'explore', 'Explore')) + '</button>' +
         '<p class="cp-iron-card__count" data-role="iron-count"></p>' +
       '</div>' +
       '<div class="cp-slide__text">' +
-        '<p class="cp-eyebrow">Page ' + n + ' · ' + esc(d.title) + '</p>' +
+        this.eyebrow(d, n) +
         '<h2 class="cp-h2">' + esc(d.heading) + '</h2>' +
-        '<p class="cp-body-text">' + esc(d.body) + '</p>' +
-        '<ul class="cp-points">' + (d.points || []).map(function (pt) { return '<li>' + esc(pt) + '</li>'; }).join('') + '</ul>' +
+        (d.body ? '<p class="cp-body-text">' + esc(d.body) + '</p>' : '') +
+        points(d.points) +
       '</div>' +
     '</div>';
   };
@@ -1058,9 +1150,10 @@
   CoursePlayer.prototype.updateIronCard = function () {
     var el = this.slots.region && this.slots.region.querySelector('[data-role=iron-count]');
     if (!el) return;
-    var seen = this.state.ironSeen.size, total = IRON_PARTS.length;
-    el.textContent = seen === total ? '✓ You explored every part' : seen + ' of ' + total + ' parts explored';
-    el.classList.toggle('is-done', seen === total);
+    var d = this.ironData();
+    var seen = this.ironSeen().size, total = this.ironParts(d).length;
+    el.textContent = seen >= total ? lbl(d, 'allDone', '✓ You explored every part') : lbl(d, 'progress', '{seen} of {total} parts explored', { seen: seen, total: total });
+    el.classList.toggle('is-done', seen >= total);
   };
 
   CoursePlayer.prototype.openIron = function () {
@@ -1068,42 +1161,45 @@
     this.dialogOpen = true;
     this.lastFocus = document.activeElement;
     var d = this.ironData();
-    var parts = d.parts || {};
+    var parts = this.ironParts(d);
     var self = this;
     var check = '<span class="cp-iron__check" aria-hidden="true">' + ICON.check + '</span>';
-    var pins = Object.keys(IRON_PINS).map(function (id) {
-      var pos = IRON_PINS[id];
-      var idx = IRON_PARTS.indexOf(id) + 1;
-      return '<button type="button" class="cp-pin" data-act="iron-part" data-part="' + id + '" style="left:' + pos[0] + '%;top:' + pos[1] + '%" aria-label="' + esc((parts[id] || {}).name || id) + '">' +
-        '<span class="cp-pin__num" aria-hidden="true">' + idx + '</span>' + check + '</button>';
+    var pins = parts.map(function (p, i) {
+      if (p.isSwitch || !p.pin) return '';
+      return '<button type="button" class="cp-pin" data-act="iron-part" data-part="' + esc(p.id) + '" style="left:' + Number(p.pin.x) + '%;top:' + Number(p.pin.y) + '%" aria-label="' + esc(p.name) + '">' +
+        '<span class="cp-pin__num" aria-hidden="true">' + (i + 1) + '</span>' + check + '</button>';
     }).join('');
-    var list = IRON_PARTS.map(function (id, i) {
-      return '<li><button type="button" class="cp-iron-row" data-act="iron-part" data-part="' + id + '">' +
+    var list = parts.map(function (p, i) {
+      return '<li><button type="button" class="cp-iron-row" data-act="iron-part" data-part="' + esc(p.id) + '">' +
         '<span class="cp-iron-row__mark" aria-hidden="true"><span class="cp-iron-row__num">' + (i + 1) + '</span>' + ICON.check + '</span>' +
-        '<span class="cp-iron-row__name">' + esc((parts[id] || {}).name || id) + '</span>' +
+        '<span class="cp-iron-row__name">' + esc(p.name) + '</span>' +
         '<span class="cp-sr cp-iron-row__state"></span></button></li>';
     }).join('');
     // Every explanation sits in the same grid cell so the panel keeps the height of the longest one.
-    var infoSlides = '<div class="cp-iron__slide is-current" data-slide="hint"><p class="cp-iron__hint">Select a numbered point on the waffle iron, or a part in the list, to learn why it matters.</p></div>' +
-      IRON_PARTS.map(function (id) {
-        var part = parts[id] || { name: id, text: '' };
-        return '<div class="cp-iron__slide" data-slide="' + id + '"><h3>' + esc(part.name) + '</h3><p>' + esc(part.text) + '</p>' +
-          (id === 'switch' ? '<p class="cp-iron__tip">' + esc(part.tip || '') + '</p>' +
-            '<p class="cp-iron__tip cp-iron__heat">' + esc((parts.light && parts.light.heating) || 'The red light means the iron is heating up.') + '</p>' : '') +
+    var infoSlides = '<div class="cp-iron__slide is-current" data-slide="hint"><p class="cp-iron__hint">' +
+        esc(lbl(d, 'hint', 'Select a numbered point on the picture, or a part in the list, to learn why it matters.')) + '</p></div>' +
+      parts.map(function (p) {
+        return '<div class="cp-iron__slide" data-slide="' + esc(p.id) + '"><h3>' + esc(p.name) + '</h3><p>' + esc(p.text) + '</p>' +
+          (p.tip ? '<p class="cp-iron__tip">' + esc(p.tip) + '</p>' : '') +
+          (p.heating ? '<p class="cp-iron__tip cp-iron__heat">' + esc(p.heating) + '</p>' : '') +
           '</div>';
       }).join('');
+    var sw = d['switch'];
+    var swPos = sw && sw.pin ? ' style="left:' + Number(sw.pin.x) + '%;top:' + Number(sw.pin.y) + '%"' : '';
+    var switchBtn = sw
+      ? '<button type="button" class="cp-switch" role="switch" aria-checked="false" data-act="iron-switch" aria-label="' + esc(sw.name) + '"' + swPos + '>' +
+          '<span class="cp-switch__track"><span class="cp-switch__knob"></span></span>' +
+          '<span class="cp-switch__text" data-role="switch-text">' + esc(sw.offLabel || 'OFF') + '</span>' + check +
+        '</button>'
+      : '';
     this.slots.overlay.innerHTML =
       '<div class="cp-dialog-layer">' +
         '<div class="cp-dialog cp-dialog--iron" role="dialog" aria-modal="true" aria-labelledby="cp-iron-title">' +
-          '<div class="cp-dialog__head"><h2 id="cp-iron-title">' + esc(d.modalTitle || 'Explore the waffle iron') + '</h2>' +
+          '<div class="cp-dialog__head"><h2 id="cp-iron-title">' + esc(d.modalTitle || d.exploreLabel || d.heading) + '</h2>' +
             '<button type="button" class="cp-btn cp-btn--ghost" data-act="resources-close" aria-label="Close" title="Close">' + ICON.close + '</button></div>' +
           '<div class="cp-iron">' +
             '<div class="cp-iron__stage" data-role="iron-stage">' +
-              ironSvg() + pins +
-              '<button type="button" class="cp-switch" role="switch" aria-checked="false" data-act="iron-switch" aria-label="Power switch">' +
-                '<span class="cp-switch__track"><span class="cp-switch__knob"></span></span>' +
-                '<span class="cp-switch__text" data-role="switch-text">OFF</span>' + check +
-              '</button>' +
+              hotspotArt(d) + pins + switchBtn +
             '</div>' +
             '<div class="cp-iron__side">' +
               '<div class="cp-iron__info" data-role="iron-info" aria-live="polite">' + infoSlides + '</div>' +
@@ -1126,22 +1222,23 @@
     this.slots.overlay.querySelector('[data-act=resources-close]').focus();
   };
 
-  // Redraws the check marks, list and progress from state.ironSeen.
+  // Redraws the check marks, list and progress from the parts this page has seen.
   CoursePlayer.prototype.ironRefresh = function () {
-    var ov = this.slots.overlay, seen = this.state.ironSeen;
+    var ov = this.slots.overlay, seen = this.ironSeen(), d = this.ironData();
+    var explored = lbl(d, 'explored', ' (explored)');
     ov.querySelectorAll('[data-part]').forEach(function (b) {
       var done = seen.has(b.getAttribute('data-part'));
       b.classList.toggle('is-seen', done);
       var st = b.querySelector('.cp-iron-row__state');
-      if (st) st.textContent = done ? ' (explored)' : '';
+      if (st) st.textContent = done ? explored : '';
     });
     var sw = ov.querySelector('.cp-switch');
     if (sw) sw.classList.toggle('is-seen', seen.has('switch'));
-    var total = IRON_PARTS.length;
+    var total = this.ironParts(d).length;
     var pr = ov.querySelector('[data-role=iron-progress]');
     if (pr) {
-      pr.textContent = seen.size === total ? '✓ You explored every part. Close this window to continue.' : seen.size + ' of ' + total + ' parts explored';
-      pr.classList.toggle('is-done', seen.size === total);
+      pr.textContent = seen.size >= total ? lbl(d, 'allDoneModal', '✓ You explored every part. Close this window to continue.') : lbl(d, 'progress', '{seen} of {total} parts explored', { seen: seen.size, total: total });
+      pr.classList.toggle('is-done', seen.size >= total);
     }
   };
 
@@ -1156,13 +1253,7 @@
   };
 
   CoursePlayer.prototype.ironPart = function (id) {
-    if (id === 'switch') {
-      this.ironShow('switch');
-      this.state.ironSeen.add('switch');
-      this.ironRefresh();
-      return;
-    }
-    this.state.ironSeen.add(id);
+    this.ironSeen().add(id);
     this.ironShow(id);
     this.ironRefresh();
   };
@@ -1171,13 +1262,13 @@
   CoursePlayer.prototype.ironSwitch = function () {
     var stage = this.slots.overlay.querySelector('[data-role=iron-stage]');
     var sw = stage.querySelector('.cp-switch');
+    var cfg = this.ironData()['switch'] || {};
     var on = !stage.classList.contains('is-on');
-    var self = this;
     clearTimeout(this.ironTimer);
     stage.classList.toggle('is-on', on);
     stage.classList.remove('is-ready');
     sw.setAttribute('aria-checked', String(on));
-    stage.querySelector('[data-role=switch-text]').textContent = on ? 'ON' : 'OFF';
+    stage.querySelector('[data-role=switch-text]').textContent = on ? (cfg.onLabel || 'ON') : (cfg.offLabel || 'OFF');
     if (on) this.ironTimer = setTimeout(function () { stage.classList.add('is-ready'); }, 1600);
     this.ironPart('switch');
   };
@@ -1202,7 +1293,7 @@
 
 
   // Cartoon alarm clock for the rest timer page. The minute hand follows the timer (see restPaint).
-  var CLOCK_ART = '<svg class="cp-rest__clock" viewBox="0 0 200 210" role="img" aria-label="A cartoon alarm clock" focusable="false">' +
+  var CLOCK_ART = '<svg class="cp-rest__clock" viewBox="0 0 200 210" role="img" aria-label="{label}" focusable="false">' +
     '<ellipse cx="100" cy="202" rx="62" ry="6" fill="#000" opacity=".1"/>' +
     '<path d="M54 178 L40 200 M146 178 L160 200" stroke="#7A3A0C" stroke-width="10" stroke-linecap="round"/>' +
     '<g class="cp-clock-bells"><circle cx="52" cy="40" r="26" fill="#F2B84B" stroke="#7A3A0C" stroke-width="5"/><circle cx="148" cy="40" r="26" fill="#F2B84B" stroke="#7A3A0C" stroke-width="5"/>' +
@@ -1219,16 +1310,23 @@
     '<circle cx="100" cy="112" r="6" fill="#7A3A0C"/>' +
   '</svg>';
 
+  CoursePlayer.prototype.restState = function () {
+    var d = this.page().data;
+    var secs = Math.max(1, Math.round((Number(d.timerMinutes) || 5) * 60));
+    var r = this.pageState(function () { return { total: secs, left: secs, running: false, end: 0 }; });
+    if (r.total !== secs) { r.total = secs; r.left = secs; r.running = false; }
+    return r;
+  };
+
   CoursePlayer.prototype.tplRest = function (d, n) {
-    var secs = Math.round((d.timerMinutes || 5) * 60);
-    if (this.state.rest.left == null || this.state.rest.total !== secs) this.state.rest = { total: secs, left: secs, running: false, end: 0 };
-    var label = esc(d.timerLabel || 'Rest timer');
+    var r = this.restState();
+    var label = esc(d.timerLabel || lbl(d, 'timer', 'Timer'));
     return '<div class="cp-rest">' +
-      '<div class="cp-rest__text">' + CLOCK_ART +
-        '<p class="cp-eyebrow">Page ' + n + ' · ' + esc(d.title) + '</p>' +
+      '<div class="cp-rest__text">' + CLOCK_ART.replace('{label}', esc(lbl(d, 'clockLabel', 'A cartoon alarm clock'))) +
+        this.eyebrow(d, n) +
         '<h2 class="cp-h2">' + esc(d.heading) + '</h2>' +
-        '<p class="cp-body-text">' + esc(d.body) + '</p>' +
-        '<ul class="cp-points">' + (d.points || []).map(function (pt) { return '<li>' + esc(pt) + '</li>'; }).join('') + '</ul>' +
+        (d.body ? '<p class="cp-body-text">' + esc(d.body) + '</p>' : '') +
+        points(d.points) +
       '</div>' +
       '<section class="cp-tray" data-role="tray" aria-label="' + label + '">' +
         '<button type="button" class="cp-tray__handle" data-act="tray" aria-expanded="false" aria-controls="cp-tray-body">' +
@@ -1238,7 +1336,7 @@
           '<span class="cp-tray__chev">' + ICON.chevronDown + '</span>' +
         '</button>' +
         '<div class="cp-tray__body" id="cp-tray-body">' +
-          '<svg class="cp-rest__waffle" viewBox="0 0 240 240" role="img" aria-label="A waffle that browns as the timer runs" data-role="rest-waffle">' +
+          '<svg class="cp-rest__waffle" viewBox="0 0 240 240" role="img" aria-label="' + esc(lbl(d, 'waffleLabel', 'A waffle that browns as the timer runs')) + '" data-role="rest-waffle">' +
             '<defs><clipPath id="cp-rest-clip"><circle cx="120" cy="120" r="98"/></clipPath></defs>' +
             '<circle cx="120" cy="124" r="108" fill="#000" opacity=".08"/>' +
             '<circle data-role="w-rim" cx="120" cy="120" r="108" fill="#E8D9B0"/>' +
@@ -1251,12 +1349,12 @@
             '</g>' +
           '</svg>' +
           '<div class="cp-rest__panel">' +
-            '<p class="cp-rest__time" data-role="rest-time" role="timer" aria-live="off">5:00</p>' +
+            '<p class="cp-rest__time" data-role="rest-time" role="timer" aria-live="off">' + fmt(Math.ceil(r.left)) + '</p>' +
             '<div class="cp-rest__bar" aria-hidden="true"><span data-role="rest-bar"></span></div>' +
             '<p class="cp-rest__status" data-role="rest-status" aria-live="polite"></p>' +
             '<div class="cp-rest__btns">' +
-              '<button type="button" class="cp-btn cp-btn--primary" data-act="rest-start" data-role="rest-start">Start timer</button>' +
-              '<button type="button" class="cp-btn cp-btn--outline" data-act="rest-reset">Reset</button>' +
+              '<button type="button" class="cp-btn cp-btn--primary" data-act="rest-start" data-role="rest-start">' + esc(lbl(d, 'start', 'Start timer')) + '</button>' +
+              '<button type="button" class="cp-btn cp-btn--outline" data-act="rest-reset">' + esc(lbl(d, 'reset', 'Reset')) + '</button>' +
             '</div>' +
           '</div>' +
         '</div>' +
@@ -1274,13 +1372,14 @@
 
   // Paints the countdown, progress bar and the waffle's colour from the time left.
   CoursePlayer.prototype.restPaint = function () {
-    var r = this.state.rest, el = this.slots.region;
+    var el = this.slots.region;
     if (!el || !el.querySelector('[data-role=rest-time]')) return;
+    var d = this.page().data, r = this.restState();
     var left = Math.max(0, r.left), total = r.total;
     var p = total ? 1 - left / total : 0;
     var txt = fmt(Math.ceil(left));
     el.querySelector('[data-role=rest-time]').textContent = txt;
-    el.querySelector('[data-role=rest-peek]').textContent = left === 0 ? 'Done' : (r.running ? txt + ' left' : txt);
+    el.querySelector('[data-role=rest-peek]').textContent = left === 0 ? lbl(d, 'done', 'Done') : (r.running ? lbl(d, 'left', '{time} left', { time: txt }) : txt);
     el.querySelector('[data-role=rest-bar]').style.width = (p * 100) + '%';
     var hand = el.querySelector('.cp-clock-min');
     if (hand) hand.setAttribute('transform', 'rotate(' + (p * 360).toFixed(1) + ' 100 112)');
@@ -1295,17 +1394,18 @@
     el.querySelector('[data-role=w-grid]').setAttribute('stroke', line);
     el.querySelector('[data-role=rest-waffle]').classList.toggle('is-cooking', r.running);
     var btn = el.querySelector('[data-role=rest-start]');
-    btn.textContent = r.running ? 'Pause' : (left === 0 ? 'Start again' : (left < total ? 'Resume' : 'Start timer'));
-    el.querySelector('[data-role=rest-status]').textContent = left === 0 ? 'Time is up. Your batter is rested and ready to cook.' :
-      r.running ? 'Resting. The batter is thickening and the bubbles are forming.' : (left < total ? 'Paused.' : 'Press start when your batter is covered and resting.');
+    btn.textContent = r.running ? lbl(d, 'pause', 'Pause') : (left === 0 ? lbl(d, 'restart', 'Start again') : (left < total ? lbl(d, 'resume', 'Resume') : lbl(d, 'start', 'Start timer')));
+    el.querySelector('[data-role=rest-status]').textContent = left === 0 ? lbl(d, 'statusDone', 'Time is up.') :
+      r.running ? lbl(d, 'statusRunning', 'Timer running.') : (left < total ? lbl(d, 'statusPaused', 'Paused.') : lbl(d, 'statusIdle', 'Press start when you are ready.'));
   };
 
   CoursePlayer.prototype.restStart = function () {
-    var r = this.state.rest, self = this;
+    var r = this.restState(), self = this;
     if (r.running) { this.restStop(); this.restPaint(); return; }
     if (r.left <= 0) r.left = r.total;
     r.running = true;
     r.end = Date.now() + r.left * 1000;
+    this.restRef = r;
     clearInterval(this.restTimer);
     this.restTimer = setInterval(function () {
       r.left = Math.max(0, (r.end - Date.now()) / 1000);
@@ -1315,24 +1415,42 @@
     this.restPaint();
   };
 
+  // Pauses whichever timer is running, even after the learner has moved to another page.
   CoursePlayer.prototype.restStop = function () {
     clearInterval(this.restTimer);
-    var r = this.state.rest;
+    var r = this.restRef;
     if (r && r.running) r.left = Math.max(0, (r.end - Date.now()) / 1000);
     if (r) r.running = false;
+    this.restRef = null;
   };
 
   CoursePlayer.prototype.restReset = function () {
     this.restStop();
-    this.state.rest.left = this.state.rest.total;
+    var r = this.restState();
+    r.left = r.total;
     this.restPaint();
   };
 
 
   // ---------- Keep-warm activity: set the oven, move waffles to a tray, slide the tray in ----------
   CoursePlayer.prototype.bakeCfg = function () {
+    var d = this.page().data, dial = d.dial || {};
+    return {
+      temp: Number(d.targetTemp) || 200,
+      count: Number(d.waffleCount) || 5,
+      min: Number(dial.min) || 0,
+      max: Number(dial.max) || 450,
+      step: Number(dial.step) || 25
+    };
+  };
+
+  CoursePlayer.prototype.bakeState = function () {
+    return this.pageState(function () { return { temp: 0, moved: 0, inOven: false, fresh: false }; });
+  };
+
+  CoursePlayer.prototype.bakeTemp = function (temp) {
     var d = this.page().data;
-    return { temp: d.targetTemp || 200, count: d.waffleCount || 5 };
+    return temp === 0 ? lbl(d, 'off', 'Off') : lbl(d, 'tempFormat', '{temp}°F', { temp: temp });
   };
 
   CoursePlayer.prototype.tplBake = function (d, n) {
@@ -1342,9 +1460,9 @@
     }).join('');
     return '<div class="cp-bake">' +
       '<div class="cp-bake__intro">' +
-        '<p class="cp-eyebrow">Page ' + n + ' · ' + esc(d.title) + '</p>' +
+        this.eyebrow(d, n) +
         '<h2 class="cp-h2">' + esc(d.heading) + '</h2>' +
-        '<p class="cp-body-text">' + esc(d.body) + '</p>' +
+        (d.body ? '<p class="cp-body-text">' + esc(d.body) + '</p>' : '') +
         '<ol class="cp-bk-steps">' + steps + '</ol>' +
         '<p class="cp-bk-msg" data-role="bake-msg" aria-live="polite"></p>' +
       '</div>' +
@@ -1353,19 +1471,19 @@
   };
 
   CoursePlayer.prototype.bakeRender = function () {
-    var b = this.state.bake, cfg = this.bakeCfg(), self = this;
+    var b = this.bakeState(), cfg = this.bakeCfg(), d = this.page().data;
     var scene = this.slots.region.querySelector('[data-role=bake-scene]');
     if (!scene) return;
     var oldDial = scene.querySelector('.cp-bk-dial');
-    var atTemp = b.temp === cfg.temp;
     var ready = b.moved >= cfg.count;
+    var vars = { moved: b.moved, count: cfg.count, left: cfg.count - b.moved, target: cfg.temp };
     var i, html = '';
     // Waffle iron
     var ironSlots = '';
     for (i = 0; i < cfg.count; i++) {
       var onIron = i >= b.moved;
       ironSlots += onIron
-        ? '<button type="button" class="cp-bk-waffle" data-act="bake-waffle" aria-label="Move a waffle to the tray (' + (cfg.count - b.moved) + ' left on the iron)"></button>'
+        ? '<button type="button" class="cp-bk-waffle" data-act="bake-waffle" aria-label="' + esc(lbl(d, 'moveWaffle', 'Move a waffle to the tray ({left} left on the iron)', vars)) + '"></button>'
         : '<span class="cp-bk-slot" aria-hidden="true"></span>';
     }
     // The first waffle still on the iron is the one that moves, so only that one is draggable.
@@ -1373,25 +1491,25 @@
     for (i = 0; i < cfg.count; i++) {
       traySlots += i < b.moved ? '<span class="cp-bk-waffle cp-bk-waffle--placed' + (b.fresh && i === b.moved - 1 ? ' is-new' : '') + '" aria-hidden="true"></span>' : '<span class="cp-bk-slot" aria-hidden="true"></span>';
     }
-    html += '<div class="cp-bk-zone cp-bk-zone--iron"><h3>Waffle iron</h3><div class="cp-bk-iron">' + ironSlots + '</div></div>';
-    html += '<div class="cp-bk-zone cp-bk-zone--tray" data-drop="tray"><h3>Tray</h3>' +
-      (b.inOven ? '<div class="cp-bk-tray cp-bk-tray--gone" aria-hidden="true"></div><p class="cp-bk-note">The tray is in the oven.</p>' :
+    html += '<div class="cp-bk-zone cp-bk-zone--iron"><h3>' + esc(lbl(d, 'ironTitle', 'Waffle iron')) + '</h3><div class="cp-bk-iron">' + ironSlots + '</div></div>';
+    html += '<div class="cp-bk-zone cp-bk-zone--tray" data-drop="tray"><h3>' + esc(lbl(d, 'trayTitle', 'Tray')) + '</h3>' +
+      (b.inOven ? '<div class="cp-bk-tray cp-bk-tray--gone" aria-hidden="true"></div><p class="cp-bk-note">' + esc(lbl(d, 'trayInOven', 'The tray is in the oven.')) + '</p>' :
       '<div class="cp-bk-tray' + (ready ? ' is-ready' : '') + '"' + (ready ? ' data-drag="tray"' : '') + '><div class="cp-bk-tray__slots">' + traySlots + '</div></div>' +
-      '<p class="cp-bk-note">' + b.moved + ' of ' + cfg.count + ' waffles on the tray</p>' +
-      (ready ? '<button type="button" class="cp-btn cp-btn--primary cp-bk-go" data-act="bake-tray">Slide tray into oven</button>' : '')) +
+      '<p class="cp-bk-note">' + esc(lbl(d, 'trayCount', '{moved} of {count} on the tray', vars)) + '</p>' +
+      (ready ? '<button type="button" class="cp-btn cp-btn--primary cp-bk-go" data-act="bake-tray">' + esc(lbl(d, 'slideTray', 'Slide tray into oven')) + '</button>' : '')) +
       '</div>';
-    var temp = b.temp === 0 ? 'Off' : b.temp + '°F';
-    html += '<div class="cp-bk-zone cp-bk-zone--oven" data-drop="oven"><h3>Oven</h3>' +
-      '<div class="cp-bk-oven' + (b.temp ? ' is-on' : '') + (b.inOven ? ' has-tray' : '') + '" style="--heat:' + (b.temp / 450).toFixed(2) + '">' +
+    var temp = this.bakeTemp(b.temp);
+    html += '<div class="cp-bk-zone cp-bk-zone--oven" data-drop="oven"><h3>' + esc(lbl(d, 'ovenTitle', 'Oven')) + '</h3>' +
+      '<div class="cp-bk-oven' + (b.temp ? ' is-on' : '') + (b.inOven ? ' has-tray' : '') + '" style="--heat:' + (b.temp / cfg.max).toFixed(2) + '">' +
         '<div class="cp-bk-oven__door"><div class="cp-bk-oven__window">' +
           (b.inOven ? '<div class="cp-bk-oven__tray"><span></span><span></span><span></span><span></span><span></span></div>' : '') +
         '</div><div class="cp-bk-oven__handle"></div></div>' +
-        '<div class="cp-bk-oven__panel"><span class="cp-bk-oven__light"></span><output class="cp-bk-oven__temp" for="cp-bk-range">' + temp + '</output></div>' +
+        '<div class="cp-bk-oven__panel"><span class="cp-bk-oven__light"></span><output class="cp-bk-oven__temp" for="cp-bk-range">' + esc(temp) + '</output></div>' +
       '</div>' +
-      '<label class="cp-bk-dial" for="cp-bk-range"><span>Oven temperature</span>' +
-        '<input id="cp-bk-range" type="range" min="0" max="450" step="25" value="' + b.temp + '"' + (b.inOven ? ' disabled' : '') + ' aria-valuetext="' + temp + '"></label>' +
+      '<label class="cp-bk-dial" for="cp-bk-range"><span>' + esc(lbl(d, 'dial', 'Oven temperature')) + '</span>' +
+        '<input id="cp-bk-range" type="range" min="' + cfg.min + '" max="' + cfg.max + '" step="' + cfg.step + '" value="' + b.temp + '"' + (b.inOven ? ' disabled' : '') + ' aria-valuetext="' + esc(temp) + '"></label>' +
     '</div>';
-    html += '<button type="button" class="cp-btn cp-btn--outline cp-bk-reset" data-act="bake-reset">Start over</button>';
+    html += '<button type="button" class="cp-btn cp-btn--outline cp-bk-reset" data-act="bake-reset">' + esc(lbl(d, 'reset', 'Start over')) + '</button>';
     scene.innerHTML = html;
     // Keep the same slider element so it can be dragged smoothly while the rest of the scene redraws.
     var newDial = scene.querySelector('.cp-bk-dial');
@@ -1405,9 +1523,9 @@
   };
 
 
-  // Step check marks and the feedback line, from state.bake.
+  // Step check marks and the feedback line, from this page's state.
   CoursePlayer.prototype.bakeStatus = function () {
-    var b = this.state.bake, cfg = this.bakeCfg();
+    var b = this.bakeState(), cfg = this.bakeCfg(), d = this.page().data;
     var atTemp = b.temp === cfg.temp;
     var ready = b.moved >= cfg.count;
     var done = [atTemp || b.inOven, ready, b.inOven];
@@ -1415,21 +1533,20 @@
       el.classList.toggle('is-done', !!done[k]);
     });
     var msg = this.slots.region.querySelector('[data-role=bake-msg]');
-    var d = this.page().data;
     msg.className = 'cp-bk-msg' + (b.inOven ? ' is-done' : '');
-    msg.textContent = b.inOven ? (d.doneText || 'Nicely done! The waffles stay warm and crisp.')
-      : b.temp !== 0 && !atTemp ? 'Keep-warm temperature is ' + cfg.temp + '\u00B0F. Adjust the dial.'
+    msg.textContent = b.inOven ? (d.doneText || lbl(d, 'done', 'Nicely done!'))
+      : b.temp !== 0 && !atTemp ? lbl(d, 'wrongTemp', 'The target temperature is {target}°F. Adjust the dial.', { target: cfg.temp })
       : '';
   };
 
   // Dragging the slider only updates the oven in place, so the slider itself is never replaced mid-drag.
   CoursePlayer.prototype.bakeOvenUpdate = function () {
-    var b = this.state.bake, region = this.slots.region;
-    var temp = b.temp === 0 ? 'Off' : b.temp + '\u00B0F';
+    var b = this.bakeState(), cfg = this.bakeCfg(), region = this.slots.region;
+    var temp = this.bakeTemp(b.temp);
     var oven = region.querySelector('.cp-bk-oven');
     if (oven) {
       oven.classList.toggle('is-on', b.temp > 0);
-      oven.style.setProperty('--heat', (b.temp / 450).toFixed(2));
+      oven.style.setProperty('--heat', (b.temp / cfg.max).toFixed(2));
       oven.querySelector('.cp-bk-oven__temp').textContent = temp;
     }
     var inp = region.querySelector('#cp-bk-range');
@@ -1443,7 +1560,7 @@
   };
 
   CoursePlayer.prototype.bakeMove = function () {
-    var b = this.state.bake, cfg = this.bakeCfg();
+    var b = this.bakeState(), cfg = this.bakeCfg();
     if (b.inOven || b.moved >= cfg.count) return;
     b.moved++; b.fresh = true;
     this.bakeRender();
@@ -1452,10 +1569,11 @@
   };
 
   CoursePlayer.prototype.bakeInsert = function () {
-    var b = this.state.bake, cfg = this.bakeCfg();
+    var b = this.bakeState(), cfg = this.bakeCfg(), d = this.page().data;
     if (b.inOven || b.moved < cfg.count) return;
     if (b.temp !== cfg.temp) {
-      this.bakeSay(b.temp === 0 ? 'Turn the oven on to ' + cfg.temp + '°F first.' : 'The oven needs to be at ' + cfg.temp + '°F first.');
+      this.bakeSay(b.temp === 0 ? lbl(d, 'needOn', 'Turn the oven on to {target}°F first.', { target: cfg.temp })
+        : lbl(d, 'needTemp', 'The oven needs to be at {target}°F first.', { target: cfg.temp }));
       return;
     }
     b.inOven = true; b.fresh = false;
@@ -1463,7 +1581,8 @@
   };
 
   CoursePlayer.prototype.bakeReset = function () {
-    this.state.bake = { temp: 0, moved: 0, inOven: false, fresh: false };
+    var b = this.bakeState();
+    b.temp = 0; b.moved = 0; b.inOven = false; b.fresh = false;
     this.bakeRender();
   };
 
@@ -1474,7 +1593,7 @@
     if (range && !range._bound) {
       range._bound = true;
       range.addEventListener('input', function () {
-        self.state.bake.temp = Number(range.value);
+        self.bakeState().temp = Number(range.value);
         self.bakeOvenUpdate();
       });
     }
@@ -1523,9 +1642,92 @@
     el.addEventListener('pointercancel', function () { start = null; el.classList.remove('is-dragging'); el.style.transform = ''; });
   };
 
+  // ---------- Quiz: one question, single or multiple answers, with feedback ----------
+  CoursePlayer.prototype.quizState = function () {
+    return this.pageState(function () { return { selected: [], submitted: false, correct: false }; });
+  };
+
+  CoursePlayer.prototype.tplQuiz = function (d, n) {
+    var q = this.quizState();
+    var multi = !!d.multiple;
+    var name = 'cp-quiz-' + n;
+    var opts = (d.options || []).map(function (o, i) {
+      var chosen = q.selected.indexOf(i) !== -1;
+      var state = '';
+      if (q.submitted && chosen) state = o.correct ? ' is-right' : ' is-wrong';
+      else if (q.submitted && q.correct && o.correct) state = ' is-right';
+      return '<li class="cp-quiz__opt' + state + '">' +
+        '<label class="cp-quiz__label">' +
+          '<input type="' + (multi ? 'checkbox' : 'radio') + '" name="' + name + '" value="' + i + '"' + (chosen ? ' checked' : '') + (q.submitted ? ' disabled' : '') + '>' +
+          '<span class="cp-quiz__mark" aria-hidden="true">' + (q.submitted && chosen ? (o.correct ? ICON.check : ICON.close) : '') + '</span>' +
+          '<span class="cp-quiz__text">' + esc(o.text) + '</span>' +
+        '</label>' +
+        (q.submitted && chosen && o.feedback ? '<p class="cp-quiz__fb">' + esc(o.feedback) + '</p>' : '') +
+      '</li>';
+    }).join('');
+    var result = '';
+    if (q.submitted) {
+      result = q.correct ? (d.correctText || lbl(d, 'correct', 'Correct!')) : (d.incorrectText || lbl(d, 'incorrect', 'Not quite. Try again.'));
+    }
+    var hint = lbl(d, multi ? 'chooseMany' : 'choose', multi ? 'Select all that apply.' : 'Select one answer.');
+    return '<div class="cp-quiz' + (d.image ? '' : ' cp-quiz--solo') + '">' +
+      (d.image ? imageSlot(d.image, d.imageLabel, d.imagePosition) : '') +
+      '<div class="cp-quiz__main">' +
+        this.eyebrow(d, n) +
+        (d.heading ? '<h2 class="cp-h2">' + esc(d.heading) + '</h2>' : '') +
+        '<fieldset class="cp-quiz__set">' +
+          '<legend class="cp-quiz__q">' + esc(d.question) + '</legend>' +
+          '<p class="cp-quiz__hint">' + esc(hint) + '</p>' +
+          '<ul class="cp-quiz__opts">' + opts + '</ul>' +
+        '</fieldset>' +
+        '<div class="cp-quiz__foot">' +
+          (q.submitted
+            ? '<button type="button" class="cp-btn cp-btn--outline" data-act="quiz-retry">' + esc(lbl(d, 'retry', 'Try again')) + '</button>'
+            : '<button type="button" class="cp-btn cp-btn--primary" data-act="quiz-submit">' + esc(lbl(d, 'submit', 'Check answer')) + '</button>') +
+          '<p class="cp-quiz__result' + (q.submitted ? (q.correct ? ' is-right' : ' is-wrong') : '') + '" data-role="quiz-result" aria-live="polite">' + esc(result) + '</p>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  };
+
+  CoursePlayer.prototype.quizSubmit = function () {
+    var d = this.page().data, q = this.quizState();
+    var picked = [];
+    this.slots.region.querySelectorAll('.cp-quiz__opts input').forEach(function (inp) {
+      if (inp.checked) picked.push(Number(inp.value));
+    });
+    if (!picked.length) {
+      var res = this.slots.region.querySelector('[data-role=quiz-result]');
+      res.className = 'cp-quiz__result';
+      res.textContent = lbl(d, 'pickFirst', 'Choose an answer first.');
+      return;
+    }
+    var opts = d.options || [];
+    var right = opts.every(function (o, i) { return !!o.correct === (picked.indexOf(i) !== -1); });
+    q.selected = picked;
+    q.submitted = true;
+    q.correct = right;
+    this.renderPage();
+    var focusTo = this.slots.region.querySelector('[data-act=quiz-retry]');
+    if (focusTo) focusTo.focus();
+    // Answering correctly completes the page, just like finishing its narration.
+    if (right && d.completeOnCorrect !== false) this.completePage(this.state.idx);
+  };
+
+  CoursePlayer.prototype.quizRetry = function () {
+    var q = this.quizState();
+    q.selected = [];
+    q.submitted = false;
+    q.correct = false;
+    this.renderPage();
+    var first = this.slots.region.querySelector('.cp-quiz__opts input');
+    if (first) first.focus();
+  };
+
   CoursePlayer.prototype.tplTabs = function (d, n) {
     var open = this.state.openItem;
     var items = d.items || [];
+    var tipLabel = lbl(d, 'tip', 'Tip:');
     var tabs = items.map(function (it, i) {
       var isOpen = i === open;
       var id = 'cp-tab-' + n + '-' + i;
@@ -1542,19 +1744,20 @@
         '<div class="cp-tabpanel__text">' +
           '<h3>' + esc(it.name) + '</h3>' +
           '<p>' + esc(it.description) + '</p>' +
-          (it.tip ? '<p class="cp-tabpanel__tip"><strong>Tip:</strong> ' + esc(it.tip) + '</p>' : '') +
+          (it.tip ? '<p class="cp-tabpanel__tip">' + (tipLabel ? '<strong>' + esc(tipLabel) + '</strong> ' : '') + esc(it.tip) + '</p>' : '') +
         '</div>' +
       '</div></div></div>';
     }).join('');
     return '<div class="cp-tabs-slide">' +
       '<div class="cp-tabs-intro">' +
-        '<p class="cp-eyebrow">Page ' + n + ' · ' + esc(d.title) + '</p>' +
+        this.eyebrow(d, n) +
         '<h2 class="cp-h2">' + esc(d.heading) + '</h2>' +
-        '<p class="cp-body-text">' + esc(d.lede) + '</p>' +
+        (d.lede ? '<p class="cp-body-text">' + esc(d.lede) + '</p>' : '') +
       '</div>' +
       '<div class="cp-tablist" role="tablist" aria-label="' + esc(d.title) + '">' + tabs + '</div>' +
       '<div class="cp-tabpanels">' + panels +
-        '<div class="cp-tabs-empty" data-role="tabs-empty"' + (open === -1 ? '' : ' hidden') + '>' + WAFFLE_ART + '</div>' +
+        '<div class="cp-tabs-empty" data-role="tabs-empty"' + (open === -1 ? '' : ' hidden') + '>' +
+          (d.emptyImage ? '<img class="cp-waffle-art" src="' + esc(d.emptyImage.src || d.emptyImage) + '" alt="' + esc(d.emptyImage.alt || '') + '">' : WAFFLE_ART) + '</div>' +
       '</div>' +
     '</div>';
   };
@@ -1717,6 +1920,110 @@
     if (this.ro) this.ro.disconnect();
     this.root.innerHTML = '';
   };
+
+  /* ---------- Loading the course from JSON ---------- */
+
+  // Course-wide placeholders any page can use in its text, e.g. "{pageCount} pages".
+  function fillTokens(value, vars) {
+    if (typeof value === 'string') {
+      return value.replace(/\{(pageCount|moduleCount|courseTitle)\}/g, function (m, k) { return vars[k]; });
+    }
+    if (Array.isArray(value)) return value.map(function (v) { return fillTokens(v, vars); });
+    if (value && typeof value === 'object') {
+      var out = {};
+      Object.keys(value).forEach(function (k) { out[k] = fillTokens(value[k], vars); });
+      return out;
+    }
+    return value;
+  }
+
+  // Turns menu.json plus its page files into the course object the player draws.
+  // Pages run in order of their "number" (ties keep the order they are listed in);
+  // modules run in order of their first page. The menu's title for a page wins over the page file's.
+  function buildCourse(menu, pageFiles) {
+    var seq = 0;
+    var modules = (menu.modules || []).map(function (mod) {
+      var pages = (mod.pages || []).map(function (entry) {
+        var data = pageFiles[entry.file] || {};
+        var page = {};
+        Object.keys(data).forEach(function (k) { page[k] = data[k]; });
+        page.title = entry.title != null ? entry.title : (data.title || '');
+        page.id = entry.id != null ? String(entry.id) : String(entry.file);
+        var order = Number(entry.number);
+        return { page: page, order: isFinite(order) && entry.number !== '' && entry.number != null ? order : Infinity, seq: seq++ };
+      });
+      pages.sort(function (a, b) { return a.order - b.order || a.seq - b.seq; });
+      return { title: mod.title, pages: pages, first: pages.length ? pages[0] : { order: Infinity, seq: Infinity } };
+    }).filter(function (mod) { return mod.pages.length; });
+    modules.sort(function (a, b) { return a.first.order - b.first.order || a.first.seq - b.first.seq; });
+
+    var pageCount = 0;
+    modules.forEach(function (m) { pageCount += m.pages.length; });
+    var vars = { pageCount: pageCount, moduleCount: modules.length, courseTitle: menu.title || '' };
+    return fillTokens({
+      title: menu.title || '',
+      storageKey: menu.storageKey || 'course-player',
+      pageLabel: menu.pageLabel,
+      resources: menu.resources || [],
+      modules: modules.map(function (m) {
+        return { title: m.title, pages: m.pages.map(function (p) { return p.page; }) };
+      })
+    }, vars);
+  }
+
+  // Loads data/menu.json (or another menu file) and every page file it lists, then starts the player.
+  // Page files are found relative to the menu file. options.files (or window.COURSE_FILES) can hold
+  // the JSON already parsed, keyed by path, for hosts that cannot fetch files.
+  CoursePlayer.load = function (root, menuUrl, options) {
+    options = options || {};
+    menuUrl = menuUrl || 'data/menu.json';
+    var files = options.files || window.COURSE_FILES || null;
+    var base = menuUrl.replace(/[^\/]*$/, '');
+    root.innerHTML = '<div class="cp-loading" role="status">Loading course…</div>';
+
+    function get(path) {
+      if (files && Object.prototype.hasOwnProperty.call(files, path)) {
+        return Promise.resolve(JSON.parse(JSON.stringify(files[path])));
+      }
+      return fetch(path, { cache: 'no-cache' }).then(function (res) {
+        if (!res.ok) throw new Error(path + ' could not be loaded (' + res.status + ').');
+        return res.text();
+      }, function () {
+        throw new Error(path + ' could not be loaded.');
+      }).then(function (text) {
+        try { return JSON.parse(text); } catch (e) { throw new Error(path + ' is not valid JSON: ' + e.message); }
+      });
+    }
+
+    return get(menuUrl).then(function (menu) {
+      var entries = [];
+      (menu.modules || []).forEach(function (mod) {
+        (mod.pages || []).forEach(function (entry) {
+          if (!entry.file) throw new Error('The page "' + (entry.title || '?') + '" in ' + menuUrl + ' has no "file".');
+          entries.push(entry.file);
+        });
+      });
+      return Promise.all(entries.map(function (file) { return get(base + file); })).then(function (list) {
+        var pageFiles = {};
+        entries.forEach(function (file, i) { pageFiles[file] = list[i]; });
+        return buildCourse(menu, pageFiles);
+      });
+    }).then(function (course) {
+      if (!course.modules.length) throw new Error(menuUrl + ' lists no pages.');
+      return new CoursePlayer(root, course, options);
+    }).catch(function (err) {
+      var local = location.protocol === 'file:';
+      root.innerHTML = '<div class="cp-loading cp-loading--error" role="alert">' +
+        '<h1>This course could not load</h1>' +
+        '<p>' + esc(err && err.message ? err.message : String(err)) + '</p>' +
+        (local ? '<p>Browsers do not let a page opened straight from your computer read its JSON files. ' +
+          'Run the course from a web server or your LMS, for example with <code>python3 -m http.server</code> in the course folder.</p>' : '') +
+      '</div>';
+      throw err;
+    });
+  };
+
+  CoursePlayer.buildCourse = buildCourse;
 
   window.CoursePlayer = CoursePlayer;
 })();

@@ -1,0 +1,72 @@
+{
+  "type": "hotspots",
+  "duration": 26,
+  "heading": "Hot plates, deep pockets",
+  "body": "Two heated grids cook the batter from both sides at once.",
+  "points": [
+    "The grid makes pockets that crisp up",
+    "Steam escapes from the sides as it cooks",
+    "Most irons have a ready light"
+  ],
+  "exploreLabel": "Explore the waffle iron",
+  "modalTitle": "Explore the waffle iron",
+  "parts": [
+    {
+      "id": "handle",
+      "name": "Handle",
+      "text": "Lifts the lid and latches it shut. Always use the handle, because the metal around the plates gets very hot.",
+      "pin": {
+        "x": 50,
+        "y": 6
+      }
+    },
+    {
+      "id": "top",
+      "name": "Top grid plate",
+      "text": "Cooks the upper side of the waffle. Its raised squares press down into the batter to make the deep pockets and crisp edges.",
+      "pin": {
+        "x": 50,
+        "y": 27
+      }
+    },
+    {
+      "id": "bottom",
+      "name": "Bottom grid plate",
+      "text": "Holds the batter and browns the underside. Grease it lightly so the waffle lifts out cleanly.",
+      "pin": {
+        "x": 50,
+        "y": 60
+      }
+    },
+    {
+      "id": "light",
+      "name": "Ready light",
+      "text": "Tells you when the plates are hot enough. Pour the batter only after it turns green, so the outside crisps right away.",
+      "pin": {
+        "x": 27.5,
+        "y": 68.5
+      }
+    }
+  ],
+  "switch": {
+    "name": "Power switch",
+    "text": "Turns the heat on and off. Switch it on first and let the iron preheat before you pour any batter.",
+    "tip": "Try it: flip the switch on the iron and watch the plates heat up.",
+    "heatingText": "The light is red while the iron heats up. When it turns green, the iron is ready for batter.",
+    "onLabel": "ON",
+    "offLabel": "OFF"
+  },
+  "labels": {
+    "art": "Drawing of an open waffle iron",
+    "hint": "Select a numbered point on the waffle iron, or a part in the list, to learn why it matters.",
+    "progress": "{seen} of {total} parts explored",
+    "allDone": "✓ You explored every part",
+    "allDoneModal": "✓ You explored every part. Close this window to continue.",
+    "explored": " (explored)"
+  },
+  "narration": [
+    "A waffle iron is two heated grids that close around the batter.",
+    "The grid shape creates deep pockets with lots of crisp edges.",
+    "As the batter cooks, steam escapes. When the steam slows down, your waffle is nearly done."
+  ]
+}
